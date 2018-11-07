@@ -25,12 +25,16 @@ class CellularAutomata {
         
     }
 
-    runWithRandom(cellType) {
+    runWithRandom(cellTypes) {
+        if(cellTypes instanceof Function) {
+            cellTypes = [cellTypes]
+        }
         this.cells = []
         
         for(let x = 0; x < this.nxCells; x++) {
             this.cells.push([])
             for(let y = 0; y < this.nyCells; y++) {
+                const cellType = cellTypes[Math.floor(Math.random() * cellTypes.length)]
                 const cell = new (cellType)()
                 cell.random()
                 this.cells[x].push(cell)
@@ -64,21 +68,39 @@ class CellularAutomata {
         }
         for(let x = 0; x < this.nxCells; x++) {
             for(let y = 0; y < this.nyCells; y++) {
-                this.cells[x][y].update([
-                    [x + 1, y    ],
-                    [x,     y + 1],
-                    [x + 1, y + 1],
-                    [x - 1, y    ],
-                    [x,     y - 1],
-                    [x - 1, y - 1],
-                    [x + 1, y - 1],
-                    [x - 1, y + 1]].map(p => this.cells_safe(old_cells, ...p)))
+                const cur_cell = this.cells[x][y]
+                const int = cur_cell._ssinternal
+                const new_type = int.become_cell
+                if(new_type) {
+                    this.cells[x][y] = new (new_type)()
+                } else {
+                    this.cells[x][y].update([
+                        [x + 1, y    ],
+                        [x,     y + 1],
+                        [x + 1, y + 1],
+                        [x - 1, y    ],
+                        [x,     y - 1],
+                        [x - 1, y - 1],
+                        [x + 1, y - 1],
+                        [x - 1, y + 1]].map(p => this.cells_safe(old_cells, ...p)))
+                }
             }
         }
     }
 }
 
+class Cell {
+    constructor() {
+        this._ssinternal = {}
+    }
+    random() {}
+    init() {}
+    become(cell_type) {
+        this._ssinternal.become_cell = cell_type
+    }
+}
 
 export {
-    CellularAutomata
+    CellularAutomata,
+    Cell
 }
