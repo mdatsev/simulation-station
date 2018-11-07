@@ -25,13 +25,15 @@ class CellularAutomata {
         
     }
 
-    runWith(cellType) {
+    runWithRandom(cellType) {
         this.cells = []
         
         for(let x = 0; x < this.nxCells; x++) {
             this.cells.push([])
             for(let y = 0; y < this.nyCells; y++) {
-                this.cells[x].push(new (cellType)())
+                const cell = new (cellType)()
+                cell.random()
+                this.cells[x].push(cell)
                 this.ctx.fillRect(x * this.cellxSize, y * this.cellySize, this.cellxSize, this.cellySize)
             }
         }
@@ -57,7 +59,7 @@ class CellularAutomata {
         for(let x = 0; x < this.nxCells; x++) {
             old_cells.push([])
             for(let y = 0; y < this.nyCells; y++) {
-                old_cells[x].push(new (this.cells[x][y].constructor)(this.cells[x][y]))
+                old_cells[x].push(Object.assign(new (this.cells[x][y].constructor)(), this.cells[x][y]))
             }
         }
         for(let x = 0; x < this.nxCells; x++) {
@@ -75,6 +77,8 @@ class CellularAutomata {
         }
     }
 }
+
+
 export {
     CellularAutomata
 }

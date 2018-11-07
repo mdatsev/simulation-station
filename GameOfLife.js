@@ -4,8 +4,8 @@ window.ca = new CellularAutomata(200, 200)
 
 class Cell {
 
-    constructor({alive = Math.random() > .5} = {}) {
-        this.alive = alive
+    random() {
+        this.alive = Math.random() > .5
     }
 
     getColor() {
@@ -17,4 +17,4 @@ class Cell {
         this.alive = n == 3 || n == 2 && this.alive
     }
 }
-ca.runWith(Cell)
+ca.runWithRandom(Cell)
