@@ -18,8 +18,8 @@ class CellularAutomata {
             document.body.appendChild(new_canvas)
             this.canvas = new_canvas
         }
-        this.ctx = this.canvas.getContext('2d')
-
+        this.ctx = this.canvas.getContext('2d', { alpha: false })
+        this.image_data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
         this.cellxSize = this.canvas.width / nxCells
         this.cellySize = this.canvas.height / nxCells
         
@@ -38,7 +38,6 @@ class CellularAutomata {
                 const cell = new (cellType)()
                 cell.random()
                 this.cells[x].push(cell)
-                this.ctx.fillRect(x * this.cellxSize, y * this.cellySize, this.cellxSize, this.cellySize)
             }
         }
 
@@ -54,10 +53,17 @@ class CellularAutomata {
     loop() {
         for(let x = 0; x < this.nxCells; x++) {
             for(let y = 0; y < this.nyCells; y++) {
-                this.ctx.fillStyle = this.cells[x][y].getColor()
-                this.ctx.fillRect(x * this.cellxSize, y * this.cellySize, this.cellxSize, this.cellySize)
+                let [r, g, b] = this.cells[x][y].getColorRaw()
+                const pos = (y * this.canvas.width + x) << 2
+                this.image_data.data[pos] = r
+                this.image_data.data[pos + 1] = g
+                this.image_data.data[pos + 2] = b
+                // this.ctx.fillStyle = this.cells[x][y].getColor()
+                // this.ctx.fillRect(x * this.cellxSize, y * this.cellySize, this.cellxSize, this.cellySize)
             }
         }
+        this.ctx.putImageData(this.image_data, 0, 0)
+
         const old_cells = []
     
         for(let x = 0; x < this.nxCells; x++) {
