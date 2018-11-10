@@ -1,8 +1,8 @@
-import {CellularAutomata} from '/lib.js'
+import {CellularAutomata, Cell} from '/lib.js'
 
-window.ca = new CellularAutomata(200, 200)
+window.ca = new CellularAutomata(50, 50)
 
-class Cell {
+class Neuron extends Cell {
 
     random() {
         this.state = Math.random() > .5 ? 'on' : 'off'
@@ -27,4 +27,4 @@ class Cell {
         this.alive = this.alive
     }
 }
-ca.runWithRandom(Cell)
+ca.runWithRandom(Neuron)

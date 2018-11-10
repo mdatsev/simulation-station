@@ -1,6 +1,6 @@
 import {CellularAutomata, Cell} from '/lib.js'
 
-window.ca = new CellularAutomata(200, 200, {width: 200, height: 200})
+window.ca = new CellularAutomata(50, 50, {}, {enablePixelDrawing: true})
 
 function hueToRgb(h) {
     const mod = (number, limit) => (number < 0 ? number + limit : number % limit)

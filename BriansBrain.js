@@ -1,6 +1,6 @@
 import {CellularAutomata, Cell} from '/lib.js'
 
-window.ca = new CellularAutomata(200, 200)
+window.ca = new CellularAutomata(50, 50)
 
 class On extends Cell {
     update()   { this.become(Dying) }

@@ -1,27 +1,42 @@
 class CellularAutomata {
-    constructor(nxCells, nyCells, canvas = {}) {
-        this.nxCells = nxCells
-        this.nyCells = nyCells
-        
+    constructor(nxCells, nyCells, canvas = {}, options = {}) {
+        const {
+            enablePixelDrawing = false,
+        } = options
+
+        function createCanvas(width, height) {
+            const new_canvas = document.createElement('canvas')
+            new_canvas.width = width
+            new_canvas.height = height
+            document.body.appendChild(new_canvas)
+            return new_canvas
+        }
+
         if(canvas instanceof HTMLCanvasElement) {
             this.canvas = canvas
         } else if(canvas.width && canvas.height) {
-            const new_canvas = document.createElement('canvas')
-            new_canvas.width = canvas.width
-            new_canvas.height = canvas.height
-            document.body.appendChild(new_canvas)
-            this.canvas = new_canvas
+            this.canvas = createCanvas(canvas.width, canvas.height)
+        } else if(typeof canvas == 'number') {
+            this.canvas = createCanvas(nxCells * canvas, nyCells * canvas)
+        } else if(enablePixelDrawing) {
+            this.canvas = createCanvas(nxCells, nyCells)
         } else {
-            const new_canvas = document.createElement('canvas')
-            new_canvas.width = nxCells * 4
-            new_canvas.height = nyCells * 4
-            document.body.appendChild(new_canvas)
-            this.canvas = new_canvas
+            this.canvas = createCanvas(nxCells * 4, nyCells * 4)
         }
+
+
+
+        this.nxCells = nxCells
+        this.nyCells = nyCells
+
         this.ctx = this.canvas.getContext('2d', { alpha: false })
-        this.image_data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
         this.cellxSize = this.canvas.width / nxCells
         this.cellySize = this.canvas.height / nxCells
+
+        if(enablePixelDrawing) {
+            this.image_data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
+        }
+        this.pixelDrawing = enablePixelDrawing
         
     }
 
@@ -50,19 +65,33 @@ class CellularAutomata {
         const mod = (n, M) => ((n % M) + M) % M
         return cells[mod(x, this.nxCells)][mod(y, this.nyCells)]
     }
-    loop() {
-        for(let x = 0; x < this.nxCells; x++) {
-            for(let y = 0; y < this.nyCells; y++) {
-                let [r, g, b] = this.cells[x][y].getColorRaw()
-                const pos = (y * this.canvas.width + x) << 2
-                this.image_data.data[pos] = r
-                this.image_data.data[pos + 1] = g
-                this.image_data.data[pos + 2] = b
-                // this.ctx.fillStyle = this.cells[x][y].getColor()
-                // this.ctx.fillRect(x * this.cellxSize, y * this.cellySize, this.cellxSize, this.cellySize)
+
+    draw() {
+        if(this.pixelDrawing) {
+            for(let x = 0; x < this.nxCells; x++) {
+                for(let y = 0; y < this.nyCells; y++) {
+                    let [r, g, b] = this.cells[x][y].getColorRaw()
+                    const pos = (y * this.canvas.width + x) << 2
+                    this.image_data.data[pos] = r
+                    this.image_data.data[pos + 1] = g
+                    this.image_data.data[pos + 2] = b
+                }
+            }
+            this.ctx.putImageData(this.image_data, 0, 0)
+        } else {
+            for(let x = 0; x < this.nxCells; x++) {
+                for(let y = 0; y < this.nyCells; y++) {
+                    this.ctx.fillStyle = this.cells[x][y].getColor()
+                    this.ctx.fillRect(x * this.cellxSize, y * this.cellySize, this.cellxSize, this.cellySize)
+                }
             }
         }
-        this.ctx.putImageData(this.image_data, 0, 0)
+        
+        
+    }
+
+    loop() {
+        this.draw()
 
         const old_cells = []
     
@@ -104,6 +133,8 @@ class Cell {
     become(cell_type) {
         this._ssinternal.become_cell = cell_type
     }
+    getColorRaw() { return [255, 0, 255] }
+    getColor() { return '#ff00ff' }
 }
 
 export {

@@ -1,8 +1,8 @@
-import {CellularAutomata} from '/lib.js'
+import {CellularAutomata, Cell} from '/lib.js'
 
-window.ca = new CellularAutomata(200, 200)
+window.ca = new CellularAutomata(50, 50)
 
-class Cell {
+class GoL extends Cell {
 
     random() {
         this.alive = Math.random() > .5
@@ -17,4 +17,4 @@ class Cell {
         this.alive = n == 3 || n == 2 && this.alive
     }
 }
-ca.runWithRandom(Cell)
+ca.runWithRandom(GoL)
