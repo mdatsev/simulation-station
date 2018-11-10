@@ -1,35 +1,38 @@
+function createCanvas(width, height) {
+    const new_canvas = document.createElement('canvas')
+    new_canvas.width = width
+    new_canvas.height = height
+    document.body.appendChild(new_canvas)
+    return new_canvas
+}
+
+function random(arr) {
+    return arr[Math.floor(Math.random() * arr.length)]
+}
+
+
 class CellularAutomata {
     constructor(nxCells, nyCells, canvas = {}, options = {}) {
         const {
             enablePixelDrawing = false,
         } = options
 
-        function createCanvas(width, height) {
-            const new_canvas = document.createElement('canvas')
-            new_canvas.width = width
-            new_canvas.height = height
-            document.body.appendChild(new_canvas)
-            return new_canvas
-        }
-
-        if(canvas instanceof HTMLCanvasElement) {
-            this.canvas = canvas
-        } else if(canvas.width && canvas.height) {
-            this.canvas = createCanvas(canvas.width, canvas.height)
-        } else if(typeof canvas == 'number') {
-            this.canvas = createCanvas(nxCells * canvas, nyCells * canvas)
-        } else if(enablePixelDrawing) {
-            this.canvas = createCanvas(nxCells, nyCells)
-        } else {
-            this.canvas = createCanvas(nxCells * 4, nyCells * 4)
-        }
-
-
-
         this.nxCells = nxCells
         this.nyCells = nyCells
 
+        if(canvas instanceof HTMLCanvasElement)
+            this.canvas = canvas
+        else if(canvas.width && canvas.height)
+            this.canvas = createCanvas(canvas.width, canvas.height)
+        else if(typeof canvas == 'number')
+            this.canvas = createCanvas(nxCells * canvas, nyCells * canvas)
+        else if(enablePixelDrawing)
+            this.canvas = createCanvas(nxCells, nyCells)
+        else
+            this.canvas = createCanvas(nxCells * 4, nyCells * 4)
+
         this.ctx = this.canvas.getContext('2d', { alpha: false })
+
         this.cellxSize = this.canvas.width / nxCells
         this.cellySize = this.canvas.height / nxCells
 
@@ -37,30 +40,34 @@ class CellularAutomata {
             this.image_data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
         }
         this.pixelDrawing = enablePixelDrawing
-        
+
     }
 
     runWithRandom(cellTypes) {
         if(cellTypes instanceof Function) {
             cellTypes = [cellTypes]
         }
+
         this.cells = []
-        
+
         for(let x = 0; x < this.nxCells; x++) {
             this.cells.push([])
             for(let y = 0; y < this.nyCells; y++) {
-                const cellType = cellTypes[Math.floor(Math.random() * cellTypes.length)]
+                const cellType = random(cellTypes)
                 const cell = new (cellType)()
                 cell.random()
                 this.cells[x].push(cell)
             }
         }
 
-        ;(function loop(t) {
-            t.loop()
-            requestAnimationFrame(_=>loop(t))
-        })(this)
+        this.startLoop()
     }
+
+    startLoop() {
+        this.tick()
+        requestAnimationFrame(this.startLoop.bind(this))
+    }
+
     cells_safe(cells, x, y) {
         const mod = (n, M) => ((n % M) + M) % M
         return cells[mod(x, this.nxCells)][mod(y, this.nyCells)]
@@ -90,7 +97,7 @@ class CellularAutomata {
         
     }
 
-    loop() {
+    tick() {
         this.draw()
 
         const old_cells = []
