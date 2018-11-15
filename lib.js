@@ -40,27 +40,53 @@ class CellularAutomata {
             this.image_data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
         }
         this.pixelDrawing = enablePixelDrawing
+        this.cells = []
+    }
 
+    run() {
+        this.startLoop()
     }
 
     runWithRandom(cellTypes) {
+        this.spreadRandomCells(cellTypes)
+        this.run()
+    }
+
+    spreadRandomCells(cellTypes, randomizeEach = true) {
         if(cellTypes instanceof Function) {
             cellTypes = [cellTypes]
         }
-
-        this.cells = []
 
         for(let x = 0; x < this.nxCells; x++) {
             this.cells.push([])
             for(let y = 0; y < this.nyCells; y++) {
                 const cellType = random(cellTypes)
                 const cell = new (cellType)()
-                cell.random()
+                if(randomizeEach)
+                    cell.random()
                 this.cells[x].push(cell)
             }
         }
+    }
 
-        this.startLoop()
+    forEachCell(f, xFrom = 0, yFrom = 0, xTo = this.nxCells, yTo = this.nyCells, randomizeEach) {
+        for(let x = xFrom; x < xTo; x++) {
+            for(let y = yFrom; y < yTo; y++) {
+                f(this.cells[x][y])
+            }
+        }
+    }  
+
+    mapCells(f, xFrom = 0, yFrom = 0, xTo = this.nxCells, yTo = this.nyCells, randomizeEach) {
+        for(let x = xFrom; x < xTo; x++) {
+            for(let y = yFrom; y < yTo; y++) {
+                this.cells[x][y] = f(this.cells[x][y])
+            }
+        }
+    }    
+
+    getCells() {
+        return this.cells
     }
 
     startLoop() {
