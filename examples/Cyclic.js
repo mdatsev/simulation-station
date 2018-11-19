@@ -1,4 +1,4 @@
-import {CellularAutomata, Cell} from '/CellularAutomata.js'
+import {CellularAutomata, Cell} from '../CellularAutomata.js'
 
 window.ca = new CellularAutomata(200, 200, {}, {enablePixelDrawing: true})
 

@@ -1,4 +1,4 @@
-import {AgentBased, Agent} from '/AgentBased.js'
+import {AgentBased, Agent} from '../AgentBased.js'
 
 window.ab = new AgentBased()
 const srandom = () => (.5 - Math.random()) * 20
