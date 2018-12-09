@@ -32,9 +32,6 @@ const cell_types = []
 const n = 16
 const colors = [...Array(n).keys()].map(i => hueToRgb(i * (1 / n)))
 class C extends Cell {
-    constructor() {
-        super()
-    }
     random() {
         this.value = Math.floor(Math.random() * n)
     }

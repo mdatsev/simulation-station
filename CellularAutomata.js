@@ -49,7 +49,7 @@ class CellularAutomata {
             this.cells.push([])
             for(let y = 0; y < this.nyCells; y++) {
                 const cellType = random(cellTypes)
-                const cell = new (cellType)()
+                const cell = new (cellType)(x, y)
                 if(randomizeEach)
                     cell.random()
                 this.cells[x].push(cell)
@@ -57,29 +57,18 @@ class CellularAutomata {
         }
     }
 
-    forEachCell(f, xFrom = 0, yFrom = 0, xTo = this.nxCells, yTo = this.nyCells, randomizeEach) {
-        for(let x = xFrom; x < xTo; x++) {
-            for(let y = yFrom; y < yTo; y++) {
-                f(this.cells[x][y])
+    *getCellsIterator() {
+        for(let x = 0; x < this.nxCells; x++) {
+            for(let y = 0; y < this.nyCells; y++) {
+                yield this.cells[x][y]
             }
         }
-    }  
-
-    mapCells(f, xFrom = 0, yFrom = 0, xTo = this.nxCells, yTo = this.nyCells, randomizeEach) {
-        for(let x = xFrom; x < xTo; x++) {
-            for(let y = yFrom; y < yTo; y++) {
-                this.cells[x][y] = f(this.cells[x][y])
-            }
-        }
-    }    
-
-    getCells() {
-        return this.cells
     }
 
-    startLoop() {
-        this.tick()
-        requestAnimationFrame(this.startLoop.bind(this))
+    startLoop(paused) {
+        if(!paused || !paused())
+            this.tick()
+        requestAnimationFrame(() => this.startLoop())
     }
 
     cells_safe(cells, x, y) {
@@ -98,24 +87,23 @@ class CellularAutomata {
                 old_cells[x].push(Object.assign(new (this.cells[x][y].constructor)(), this.cells[x][y]))
             }
         }
-        for(let x = 0; x < this.nxCells; x++) {
-            for(let y = 0; y < this.nyCells; y++) {
-                const cur_cell = this.cells[x][y]
-                const int = cur_cell._ssinternal
-                const new_type = int.become_cell
-                if(new_type) {
-                    this.cells[x][y] = new (new_type)()
-                } else {
-                    this.cells[x][y].update([
-                        [x + 1, y    ],
-                        [x,     y + 1],
-                        [x + 1, y + 1],
-                        [x - 1, y    ],
-                        [x,     y - 1],
-                        [x - 1, y - 1],
-                        [x + 1, y - 1],
-                        [x - 1, y + 1]].map(p => this.cells_safe(old_cells, ...p)))
-                }
+        for(const cell of this.getCellsIterator()) {
+            const int = cell._ssinternal
+            const new_type = int.become_cell
+            if(new_type) {
+                this.cells[cell.x][cell.y] = new (new_type)(cell.x, cell.y)
+            } else {
+                const x = cell.x
+                const y = cell.y
+                cell.update([
+                    [x + 1, y    ],
+                    [x,     y + 1],
+                    [x + 1, y + 1],
+                    [x - 1, y    ],
+                    [x,     y - 1],
+                    [x - 1, y - 1],
+                    [x + 1, y - 1],
+                    [x - 1, y + 1]].map(p => this.cells_safe(old_cells, ...p)))
             }
         }
         this.frameCounter.update()
@@ -124,7 +112,9 @@ class CellularAutomata {
 }
 
 class Cell {
-    constructor() {
+    constructor(x, y) {
+        this.x = x
+        this.y = y
         this._ssinternal = {}
     }
     random() {}
