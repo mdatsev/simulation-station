@@ -26,4 +26,9 @@ export default class CARenderer {
             }
         }
     }
+
+    redrawCell(cell) {
+        this.ctx.fillStyle = cell.getColor()
+        this.ctx.fillRect(cell.x * this.ca.cellxSize, cell.y * this.ca.cellySize, this.ca.cellxSize, this.ca.cellySize)
+    }
 }

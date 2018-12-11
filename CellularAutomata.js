@@ -1,6 +1,6 @@
 import FrameCounter from './FrameCounter.js'
 import CARenderer from './CARenderer.js'
-import {random, createCanvas} from './util.js'
+import {random, createCanvas, clickToCanvasCoordinates} from './util.js'
 
 function chooseCanvas(nxCells, nyCells, canvas, enablePixelDrawing) {
     if(canvas instanceof HTMLCanvasElement)
@@ -21,14 +21,24 @@ class CellularAutomata {
         const {
             enablePixelDrawing = false,
         } = options
-        canvas = chooseCanvas(nxCells, nyCells, canvas, enablePixelDrawing)
+        this.canvas = chooseCanvas(nxCells, nyCells, canvas, enablePixelDrawing)
+        this.canvas.addEventListener('click', this.onClick.bind(this))
         this.nxCells = nxCells
         this.nyCells = nyCells
-        this.cellxSize = canvas.width / nxCells
-        this.cellySize = canvas.height / nxCells
+        this.cellxSize = this.canvas.width / nxCells
+        this.cellySize = this.canvas.height / nxCells
         this.cells = []
         this.frameCounter = new FrameCounter(100)
-        this.renderer = new CARenderer(this, canvas, enablePixelDrawing)
+        this.renderer = new CARenderer(this, this.canvas, enablePixelDrawing)
+    }
+
+    onClick(event) {
+        let [x, y] = clickToCanvasCoordinates(this.canvas, event)
+        x = Math.floor(x / this.cellxSize)
+        y = Math.floor(y / this.cellySize)
+        const targetCell = this.cells[x][y]
+        targetCell.onClick()
+        this.renderer.redrawCell(targetCell)
     }
 
     run() {
@@ -40,7 +50,7 @@ class CellularAutomata {
         this.run()
     }
 
-    spreadRandomCells(cellTypes, randomizeEach = true) {
+    spreadRandomCells(cellTypes, randomizeEach = true, draw = true) {
         if(cellTypes instanceof Function) {
             cellTypes = [cellTypes]
         }
@@ -55,6 +65,8 @@ class CellularAutomata {
                 this.cells[x].push(cell)
             }
         }
+        if(draw)
+            this.renderer.draw()
     }
 
     *getCellsIterator() {
@@ -77,8 +89,6 @@ class CellularAutomata {
     }
 
     tick() {
-        this.renderer.draw()
-
         const old_cells = []
     
         for(let x = 0; x < this.nxCells; x++) {
@@ -106,6 +116,7 @@ class CellularAutomata {
                     [x - 1, y + 1]].map(p => this.cells_safe(old_cells, ...p)))
             }
         }
+        this.renderer.draw()
         this.frameCounter.update()
         console.log(this.frameCounter.getFramerate())
     }
