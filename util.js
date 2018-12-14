@@ -29,9 +29,40 @@ function random(arg1, arg2) {
     }
 }
 
+function map(n, in_from, in_to, out_from, out_to) {
+    return out_from + (n - in_from) / (in_to - in_from) * (out_to - out_from);
+}
+
+function hueToRgb(h) {
+    const mod = (number, limit) => (number < 0 ? number + limit : number % limit)
+    const h2rgb = (initT) => {
+        const t = mod(initT, 1)
+    
+        if (t < 1 / 6) {
+            return 6 * t
+        }
+        if (t < 1 / 2) {
+            return 1
+        }
+        if (t < 2 / 3) {
+            return ((2 / 3) - t) * 6
+        }
+    
+        return 0
+    }
+    
+    const r = h2rgb(h + (1 / 3))
+    const g = h2rgb(h)
+    const b = h2rgb(h - (1 / 3))
+    
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
+}
+
 export {
     random,
     createCanvas,
     createButton,
-    clickToCanvasCoordinates
+    clickToCanvasCoordinates,
+    map,
+    hueToRgb
 }
