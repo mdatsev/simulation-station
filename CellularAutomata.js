@@ -42,6 +42,18 @@ class CellularAutomata {
         this.running = true
     }
 
+    run() {
+        this.resume()
+    }
+
+    forEachCell(f, xFrom = 0, yFrom = 0, xTo = this.nxCells, yTo = this.nyCells, randomizeEach) {	
+        for(let x = xFrom; x < xTo; x++) {	
+            for(let y = yFrom; y < yTo; y++) {	
+                f(this.cells[x][y])	
+            }
+        }
+    }   
+
     onClick(event) {
         let [x, y] = clickToCanvasCoordinates(this.canvas, event)
         x = Math.floor(x / this.cellxSize)
@@ -143,6 +155,7 @@ class Cell {
     getColorRaw() { return [255, 0, 255] }
     getColor() { return '#ff00ff' }
     update() {}
+    onClick() {}
 }
 
 export {
