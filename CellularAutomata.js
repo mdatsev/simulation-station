@@ -30,6 +30,16 @@ class CellularAutomata {
         this.cells = []
         this.frameCounter = new FrameCounter(100)
         this.renderer = new CARenderer(this, this.canvas, enablePixelDrawing)
+        this.running = false
+        this.startLoop()
+    }
+
+    pause() {
+        this.running = false
+    }
+
+    resume() {
+        this.running = true
     }
 
     onClick(event) {
@@ -77,8 +87,8 @@ class CellularAutomata {
         }
     }
 
-    startLoop(paused) {
-        if(!paused || !paused())
+    startLoop() {
+        if(this.running)
             this.tick()
         requestAnimationFrame(() => this.startLoop())
     }

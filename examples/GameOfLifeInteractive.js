@@ -1,6 +1,6 @@
 import {CellularAutomata, Cell} from '../CellularAutomata.js'
-import {createButton} from '../util.js'
-let ca = new CellularAutomata(50, 50, 10)
+import {createCAControls} from '../UI.js'
+const ca = new CellularAutomata(50, 50, 10)
 
 class GoL extends Cell {
 
@@ -22,4 +22,4 @@ class GoL extends Cell {
     }
 }
 ca.spreadRandomCells(GoL, false)
-createButton(() => ca.tick(), 'step')
+createCAControls(ca)
