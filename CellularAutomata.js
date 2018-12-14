@@ -51,10 +51,6 @@ class CellularAutomata {
         this.renderer.redrawCell(targetCell)
     }
 
-    run() {
-        this.startLoop()
-    }
-
     runWithRandom(cellTypes) {
         this.spreadRandomCells(cellTypes)
         this.run()
@@ -70,6 +66,7 @@ class CellularAutomata {
             for(let y = 0; y < this.nyCells; y++) {
                 const cellType = random(cellTypes)
                 const cell = new (cellType)(x, y)
+                cell.init()
                 if(randomizeEach)
                     cell.random()
                 this.cells[x].push(cell)
@@ -145,6 +142,7 @@ class Cell {
     }
     getColorRaw() { return [255, 0, 255] }
     getColor() { return '#ff00ff' }
+    update() {}
 }
 
 export {
