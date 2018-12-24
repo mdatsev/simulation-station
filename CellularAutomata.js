@@ -147,18 +147,43 @@ class Cell {
         this.y = y
         this._ssinternal = {}
     }
-    random() {}
-    init() {}
+
     become(cell_type) {
         this._ssinternal.become_cell = cell_type
     }
+
+    getMooreNeighbours(){
+        const x = this.x
+        const y = this.y
+        return [
+            [x + 1, y    ],
+            [x,     y + 1],
+            [x + 1, y + 1],
+            [x - 1, y    ],
+            [x,     y - 1],
+            [x - 1, y - 1],
+            [x + 1, y - 1],
+            [x - 1, y + 1]].map(p => this.cells_safe(old_cells, ...p))
+    }
+
+    // impl
+    random() {}
+    init() {}
     getColorRaw() { return [255, 0, 255] }
     getColor() { return '#ff00ff' }
     update() {}
     onClick() {}
 }
 
+class EmptyCell extends Cell {
+    constructor(...args) {
+        super(...args)
+        this._ssinternal.is_empty_cell = true
+    }
+}
+
 export {
     CellularAutomata,
-    Cell
+    Cell,
+    EmptyCell
 }

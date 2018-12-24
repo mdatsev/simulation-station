@@ -1,6 +1,6 @@
 import {simplex2d} from '../noisejs/noise.js'
 
-import {CellularAutomata, Cell} from '../CellularAutomata.js'
+import {CellularAutomata, Cell, EmptyCell} from '../CellularAutomata.js'
 
 function terrain(x, y, noise, scale) {
     x /= scale
@@ -21,12 +21,7 @@ class Terrain extends Cell {
     }
 
     getColor() {
-        if(this.burning == 0)
-            return this.color
-        else if(this.burning > 0)
-            return 'brown'
-        else
-            return 'black'//`hsl(${map(this.time, min_time, max_time, 0, 360 * 5)}, 100%, 50%)`
+        return this.color
     }
 
     onClick() {
@@ -61,6 +56,15 @@ class Terrain extends Cell {
     }
 }
 
+class Fire extends Cell {
+    getColor() {
+        if(this.burning)
+            return 'brown'
+        else
+            return 'black'//`hsl(${map(this.time, min_time, max_time, 0, 360 * 5)}, 100%, 50%)`
+    }
+}
+
 const ca = new CellularAutomata(200, 200)
-ca.spreadRandomCells(Terrain)
+ca.spreadRandomCells([EmptyCell, Terrain])
 ca.resume()
