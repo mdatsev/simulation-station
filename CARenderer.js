@@ -23,16 +23,20 @@ export default class CARenderer {
             this.ctx.putImageData(this.image_data, 0, 0)
         } else {
             for(const cell of this.ca.getCellsIterator()) {
-                if(cell._ssinternal.is_empty_cell) 
+                const col = cell.getColor()
+                if(!col) 
                     continue;
-                this.ctx.fillStyle = cell.getColor()
+                this.ctx.fillStyle = col
                 this.ctx.fillRect(cell.x * this.ca.cellxSize, cell.y * this.ca.cellySize, this.ca.cellxSize, this.ca.cellySize)
             }
         }
     }
 
     redrawCell(cell) {
-        this.ctx.fillStyle = cell.getColor()
+        const col = cell.getColor()
+        if(!col)
+            return
+        this.ctx.fillStyle = col
         this.ctx.fillRect(cell.x * this.ca.cellxSize, cell.y * this.ca.cellySize, this.ca.cellxSize, this.ca.cellySize)
     }
 }

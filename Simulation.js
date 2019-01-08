@@ -2,26 +2,26 @@ import FrameCounter from './FrameCounter.js'
 import CARenderer from './CARenderer.js'
 import {random, createCanvas, clickToCanvasCoordinates} from './util.js'
 
-function chooseCanvas(nxCells, nyCells, canvas, enablePixelDrawing) {
+function chooseCanvas(nxCells, nyCells, canvas) {
     if(canvas instanceof HTMLCanvasElement)
         return canvas
     else if(canvas.width && canvas.height)
         return createCanvas(canvas.width, canvas.height)
     else if(typeof canvas == 'number')
         return createCanvas(nxCells * canvas, nyCells * canvas)
-    else if(enablePixelDrawing)
-        return createCanvas(nxCells, nyCells)
     else
         return createCanvas(nxCells * 4, nyCells * 4)
 }
 
 
-class CellularAutomata {
-    constructor(nxCells, nyCells, canvas = {}, options = {}) {
-        const {
-            enablePixelDrawing = false,
-        } = options
-        this.canvas = chooseCanvas(nxCells, nyCells, canvas, enablePixelDrawing)
+class CALayer {
+
+    constructor(cellTypes) {
+        this.cellTypes = cellTypes
+    }
+
+    init(nxCells, nyCells, canvas = {}) {
+        this.canvas = chooseCanvas(nxCells, nyCells, canvas)
         this.canvas.addEventListener('click', this.onClick.bind(this))
         this.nxCells = nxCells
         this.nyCells = nyCells
@@ -29,8 +29,9 @@ class CellularAutomata {
         this.cellySize = this.canvas.height / nxCells
         this.cells = []
         this.frameCounter = new FrameCounter(100)
-        this.renderer = new CARenderer(this, this.canvas, enablePixelDrawing)
+        this.renderer = new CARenderer(this, this.canvas)
         this.running = false
+        this.spreadRandomCells(this.cellTypes)
         this.startLoop()
     }
 
@@ -77,7 +78,7 @@ class CellularAutomata {
             this.cells.push([])
             for(let y = 0; y < this.nyCells; y++) {
                 const cellType = random(cellTypes)
-                const cell = new (cellType)(x, y)
+                const cell = new (cellType)(x, y, this)
                 cell.init()
                 if(randomizeEach)
                     cell.random()
@@ -108,8 +109,7 @@ class CellularAutomata {
     }
 
     tick() {
-        const old_cells = []
-    
+        const old_cells = this.old_cells = []
         for(let x = 0; x < this.nxCells; x++) {
             old_cells.push([])
             for(let y = 0; y < this.nyCells; y++) {
@@ -120,83 +120,61 @@ class CellularAutomata {
             const int = cell._ssinternal
             const new_type = int.become_cell
             if(new_type) {
-                (this.cells[cell.x][cell.y] = new (new_type)(cell.x, cell.y)).init()
+                (this.cells[cell.x][cell.y] = new (new_type)(cell.x, cell.y, this)).init()
             } else {
                 const x = cell.x
                 const y = cell.y
-                cell.update([
-                    [x + 1, y    ],
-                    [x,     y + 1],
-                    [x + 1, y + 1],
-                    [x - 1, y    ],
-                    [x,     y - 1],
-                    [x - 1, y - 1],
-                    [x + 1, y - 1],
-                    [x - 1, y + 1]].map(p => this.cells_safe(old_cells, ...p)))
+                cell.update(cell.getMooreNeighbours())
             }
         }
         this.renderer.draw()
         this.frameCounter.update()
-        console.log(this.frameCounter.getFramerate())
+        //console.log(this.frameCounter.getFramerate())
     }
 }
 
-class Cell {
-    constructor(x, y, sim) {
-        this.x = x
-        this.y = y
-        this._ssinternal = {}
-        this._ssinternal.sim = sim
+class Simulation {
+
+    constructor(xsize, ysize, layers, canvas = {}) {
+        this.layers = layers
+        canvas = chooseCanvas(xsize, ysize, canvas)
+        for(const layer of layers) {
+            layer.init(xsize, ysize, canvas)
+        }
+        canvas.addEventListener('click', this.onClick.bind(this))
+        this.frameCounter = new FrameCounter(100)
+        this.running = false
+        this.startLoop()
     }
 
-    become(cell_type) {
-        this._ssinternal.become_cell = cell_type
+    startLoop() {
+        if(this.running)
+            this.tick()
+        requestAnimationFrame(() => this.startLoop())
     }
 
-    getMooreNeighbours(layer = this._ssinternal.sim){
-        const x = this.x
-        const y = this.y
-        return [
-            [x + 1, y    ],
-            [x,     y + 1],
-            [x + 1, y + 1],
-            [x - 1, y    ],
-            [x,     y - 1],
-            [x - 1, y - 1],
-            [x + 1, y - 1],
-            [x - 1, y + 1]].map(p => layer.cells_safe(layer.old_cells, ...p))
+    tick() { 
+        for(const layer of this.layers) {
+            layer.tick()
+        }
     }
 
-    on(layer) {
-        return layer.cells[this.x][this.y]
+    pause() {
+        this.running = false
     }
 
-    // impl
-    random() {}
-    init() {}
-    getColorRaw() { return [255, 0, 255] }
-    getColor() { return '#ff00ff' }
-    update() {}
-    onClick() {}
-}
-
-class EmptyCell extends Cell {
-    constructor(...args) {
-        super(...args)
-        this._ssinternal.is_empty_cell = true
+    resume() {
+        this.running = true
     }
 
-    getColor() {
-        return null
-    }
-
-    getColorRaw() {
-        return null
+    onClick(e) {
+        for(const layer of this.layers) {
+            layer.onClick(e)
+        }
     }
 }
 
 export {
-    CellularAutomata,
-    Cell,
-    EmptyCell
+    CALayer,
+    Simulation
 }
