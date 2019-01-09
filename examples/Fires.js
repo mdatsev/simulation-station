@@ -1,8 +1,6 @@
 import {simplex2d} from '../noisejs/noise.js'
 
-import {CellularAutomata, Cell, EmptyCell} from '../CellularAutomata.js'
-
-import {CALayer, Simulation} from '../Simulation.js'
+import {Cell, CALayer, Simulation} from '../Simulation.js'
 
 function terrain(x, y, noise, scale) {
     x /= scale
@@ -28,10 +26,6 @@ class Terrain extends Cell {
 
     onClick() {
         this.burning = 1
-    }
-
-    update() {
-
     }
 }
 

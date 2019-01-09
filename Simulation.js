@@ -13,10 +13,12 @@ function chooseCanvas(nxCells, nyCells, canvas) {
         return createCanvas(nxCells * 4, nyCells * 4)
 }
 
+class Layer {}
 
-class CALayer {
+class CALayer extends Layer {
 
     constructor(cellTypes) {
+        super()
         this.cellTypes = cellTypes
     }
 
@@ -136,7 +138,7 @@ class CALayer {
 class Simulation {
 
     constructor(xsize, ysize, layers, canvas = {}) {
-        this.layers = layers
+        this.layers = layers = layers instanceof Layer ? [layers] : layers
         canvas = chooseCanvas(xsize, ysize, canvas)
         for(const layer of layers) {
             layer.init(xsize, ysize, canvas)
@@ -174,7 +176,63 @@ class Simulation {
     }
 }
 
+class Cell {
+    constructor(x, y, sim) {
+        this.x = x
+        this.y = y
+        this._ssinternal = {}
+        this._ssinternal.sim = sim
+    }
+
+    become(cell_type) {
+        this._ssinternal.become_cell = cell_type
+    }
+
+    getMooreNeighbours(layer = this._ssinternal.sim){
+        const x = this.x
+        const y = this.y
+        return [
+            [x + 1, y    ],
+            [x,     y + 1],
+            [x + 1, y + 1],
+            [x - 1, y    ],
+            [x,     y - 1],
+            [x - 1, y - 1],
+            [x + 1, y - 1],
+            [x - 1, y + 1]].map(p => layer.cells_safe(layer.old_cells, ...p))
+    }
+
+    on(layer) {
+        return layer.cells[this.x][this.y]
+    }
+
+    // impl
+    random() {}
+    init() {}
+    getColorRaw() { return [255, 0, 255] }
+    getColor() { return '#ff00ff' }
+    update() {}
+    onClick() {}
+}
+
+class EmptyCell extends Cell {
+    constructor(...args) {
+        super(...args)
+        this._ssinternal.is_empty_cell = true
+    }
+
+    getColor() {
+        return null
+    }
+
+    getColorRaw() {
+        return null
+    }
+}
+
 export {
     CALayer,
-    Simulation
+    Simulation,
+    Cell,
+    EmptyCell
 }

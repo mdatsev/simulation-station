@@ -1,7 +1,5 @@
 import {CellularAutomata, Cell} from '../CellularAutomata.js'
 
-window.ca = new CellularAutomata(200, 200)
-
 class GoL extends Cell {
 
     random() {
@@ -17,4 +15,7 @@ class GoL extends Cell {
         this.alive = n == 3 || n == 2 && this.alive
     }
 }
-ca.runWithRandom(GoL)
+
+window.ca = new CellularAutomata(200, 200, GoL)
+
+ca.resume()
