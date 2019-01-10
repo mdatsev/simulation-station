@@ -1,7 +1,5 @@
 import {CellularAutomata, Cell} from '../CellularAutomata.js'
 
-window.ca = new CellularAutomata(200, 200)
-
 class On extends Cell {
     update()   { this.become(Dying) }
     getColor() { return '#ffffff' }
@@ -20,4 +18,6 @@ class Off extends Cell {
     getColor() { return '#000000' }
 }
 
-ca.runWithRandom([On, Off])
+const ca = new CellularAutomata(200, 200, [On, Off])
+
+ca.resume()

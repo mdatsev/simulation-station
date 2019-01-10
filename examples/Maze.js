@@ -1,9 +1,6 @@
 import {CellularAutomata, Cell} from '../CellularAutomata.js'
 
-window.ca = new CellularAutomata(200, 200)
-
 class Maze extends Cell {
-
     getColor() {
         return this.alive ? '#FFFFFF' : '#000000'
     }
@@ -13,9 +10,10 @@ class Maze extends Cell {
         this.alive = n == 3 || n > 0 && n < 6 && this.alive
     }
 }
-ca.spreadRandomCells(Maze)
+
+const ca = new CellularAutomata(200, 200, Maze)
 
 ca.forEachCell(c => c.alive = Math.random() > .5, 
     100, 100, 105, 105)
 
-ca.run()
+ca.resume()

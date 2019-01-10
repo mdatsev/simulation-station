@@ -1,7 +1,5 @@
 import {CellularAutomata, Cell} from '../CellularAutomata.js'
 
-window.ca = new CellularAutomata(200, 200)
-
 class Neuron extends Cell {
 
     random() {
@@ -27,4 +25,7 @@ class Neuron extends Cell {
         this.alive = this.alive
     }
 }
-ca.runWithRandom(Neuron)
+
+const ca = new CellularAutomata(200, 200, Neuron)
+
+ca.resume()

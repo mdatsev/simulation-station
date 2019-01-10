@@ -1,12 +1,7 @@
 import {CellularAutomata, Cell} from '../CellularAutomata.js'
 import {createCAControls} from '../UI.js'
-const ca = new CellularAutomata(50, 50, 10)
 
 class GoL extends Cell {
-
-    random() {
-        this.alive = Math.random() > .5
-    }
 
     getColor() {
         return this.alive ? '#FFFFFF' : '#000000'
@@ -18,8 +13,11 @@ class GoL extends Cell {
     }
 
     onClick() {
+        console.log(this.x, this.y)
         this.alive ^= true
     }
 }
-ca.spreadRandomCells(GoL, false)
+
+const ca = window.ca = new CellularAutomata(50, 50, GoL)
+
 createCAControls(ca)

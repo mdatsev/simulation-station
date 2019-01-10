@@ -1,13 +1,11 @@
 import {CellularAutomata, Cell} from '../CellularAutomata.js'
 import {hueToRgb} from '../util.js'
 
-window.ca = new CellularAutomata(200, 200, {}, {enablePixelDrawing: true})
-
 const cell_types = []
 const n = 16
-const colors = [...Array(n).keys()].map(i => hueToRgb(i * (1 / n)))
+const colors = [...Array(n).keys()].map(i => `hsl(${i / n * 360},100%,50%)`) //hueToRgb(i * (1 / n)))
 class C extends Cell {
-    random() {
+    init() {
         this.value = Math.floor(Math.random() * n)
     }
     update(neighs) {
@@ -15,6 +13,10 @@ class C extends Cell {
         if(c)
             this.value = c.value
     }
-    getColorRaw() { return colors[this.value] }
+    // getColorRaw() { return colors[this.value] }
+    getColor() { return colors[this.value] }
 }
-ca.runWithRandom(C)
+
+const ca = new CellularAutomata(200, 200, C)
+
+ca.resume()

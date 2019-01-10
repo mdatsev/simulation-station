@@ -2,7 +2,7 @@ import {CellularAutomata, Cell} from '../CellularAutomata.js'
 
 class GoL extends Cell {
 
-    random() {
+    init() {
         this.alive = Math.random() > .5
     }
 
@@ -16,6 +16,6 @@ class GoL extends Cell {
     }
 }
 
-window.ca = new CellularAutomata(200, 200, GoL)
+const ca = new CellularAutomata(200, 200, GoL)
 
 ca.resume()

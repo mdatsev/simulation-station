@@ -143,7 +143,6 @@ class Simulation {
         for(const layer of layers) {
             layer.init(xsize, ysize, canvas)
         }
-        canvas.addEventListener('click', this.onClick.bind(this))
         this.frameCounter = new FrameCounter(100)
         this.running = false
         this.startLoop()
@@ -167,12 +166,6 @@ class Simulation {
 
     resume() {
         this.running = true
-    }
-
-    onClick(e) {
-        for(const layer of this.layers) {
-            layer.onClick(e)
-        }
     }
 }
 
