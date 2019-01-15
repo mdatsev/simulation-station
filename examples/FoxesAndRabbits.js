@@ -1,6 +1,6 @@
-import {AgentBased, Agent} from '../AgentBased.js'
+import {ABLayer, Simulation, Agent} from '../Simulation.js'
 
-window.ab = new AgentBased()
+const ab = new ABLayer()
 const srandom = () => (.5 - Math.random()) * 20
 class Rabbit extends Agent {
 
@@ -30,10 +30,10 @@ class Fox extends Agent {
 
     update() {
         this.hunger++
-        if(this.hunger > 4) {
+        if(this.hunger > 100) {
             this.destroy(this)
         }
-        this.neighsWithin(10, Rabbit).forEach(a => {
+        this.neighsWithin(5, Rabbit).forEach(a => {
             this.destroy(a)
             if(Math.random() > .9)
                 this.spawn(Fox)
@@ -43,6 +43,7 @@ class Fox extends Agent {
     }
 }
 
-ab.spreadRandom(Fox, 10)
+const sim = window.sim = new Simulation(600, 600, [ab])
+ab.spreadRandom(Fox, 100)
 ab.spreadRandom(Rabbit, 2000)
-ab.run()
+sim.resume()

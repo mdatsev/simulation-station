@@ -1,4 +1,4 @@
-export default class CARenderer {
+export default class ABRenderer {
     constructor(ab, canvas, enablePixelDrawing) {
         this.ab = ab
         this.canvas = canvas
