@@ -3,6 +3,7 @@ import { Layer } from './CommonComponents.js'
 import { CALayer, Cell, EmptyCell } from './CAComponents.js'
 import { ABLayer, Agent } from './ABComponents.js'
 import { createCanvas } from './util.js'
+import { WebGLRenderer } from './WebGLRenderer.js'
 
 function chooseCanvas(nxCells, nyCells, canvas) {
     if(canvas instanceof HTMLCanvasElement)
@@ -23,7 +24,9 @@ class Simulation {
         for(const layer of layers) {
             layer.init(xsize, ysize, canvas)
         }
+        this.renderer = new WebGLRenderer(this, canvas, xsize, ysize)
         this.frameCounter = new FrameCounter(100)
+        this.transform = 
         this.running = false
         this.startLoop()
     }
@@ -34,10 +37,13 @@ class Simulation {
         requestAnimationFrame(() => this.startLoop())
     }
 
-    tick() { 
+    tick() {
         for(const layer of this.layers) {
             layer.tick()
         }
+        this.renderer.draw()
+        this.frameCounter.update()
+        console.log(this.frameCounter.getFramerate())
     }
 
     pause() {

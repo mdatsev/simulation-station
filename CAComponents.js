@@ -1,5 +1,4 @@
 import { Layer } from './CommonComponents.js'
-import CARenderer from './CARenderer.js'
 import { random, clickToCanvasCoordinates } from './util.js'
 
 class Cell {
@@ -35,8 +34,7 @@ class Cell {
     // impl
     random() {}
     init() {}
-    getColorRaw() { return [255, 0, 255] }
-    getColor() { return '#ff00ff' }
+    getColor() { return [255, 0, 255] }
     update() {}
     onClick() {}
 }
@@ -64,14 +62,9 @@ class CALayer extends Layer {
     }
 
     init(nxCells, nyCells, canvas = {}) {
-        this.canvas = chooseCanvas(nxCells, nyCells, canvas)
-        this.canvas.addEventListener('click', this.onClick.bind(this))
         this.nxCells = nxCells
         this.nyCells = nyCells
-        this.cellxSize = this.canvas.width / nxCells
-        this.cellySize = this.canvas.height / nxCells
         this.cells = []
-        this.renderer = new CARenderer(this, this.canvas)
         this.running = false
         this.spreadRandomCells(this.cellTypes)
         this.startLoop()
@@ -103,7 +96,6 @@ class CALayer extends Layer {
         y = Math.floor(y / this.cellySize)
         const targetCell = this.cells[x][y]
         targetCell.onClick()
-        this.renderer.redrawCell(targetCell)
     }
 
     runWithRandom(cellTypes) {
@@ -111,7 +103,7 @@ class CALayer extends Layer {
         this.run()
     }
 
-    spreadRandomCells(cellTypes, randomizeEach = true, draw = true) {
+    spreadRandomCells(cellTypes, randomizeEach = true) {
         if(cellTypes instanceof Function) {
             cellTypes = [cellTypes]
         }
@@ -127,8 +119,6 @@ class CALayer extends Layer {
                 this.cells[x].push(cell)
             }
         }
-        if(draw)
-            this.renderer.draw()
     }
 
     *getCellsIterator() {
@@ -169,7 +159,6 @@ class CALayer extends Layer {
                 cell.update(cell.getMooreNeighbours())
             }
         }
-        this.renderer.draw()
     }
 }
 

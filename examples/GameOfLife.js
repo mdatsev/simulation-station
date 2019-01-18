@@ -7,7 +7,7 @@ class GoL extends Cell {
     }
 
     getColor() {
-        return this.alive ? '#FFFFFF' : '#000000'
+        return this.alive ? [255, 255, 255] : [0, 0, 0]
     }
 
     update(neighs) {

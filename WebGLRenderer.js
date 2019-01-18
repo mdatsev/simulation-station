@@ -2,9 +2,9 @@ import glm from './gl-matrix/gl-matrix.js'
 
 const mat4 = glm.mat4
 
-class WebGLRender {
+class WebGLRenderer {
 
-    initializeWebGLData(texWidth, texHeight) {
+    initializeWebGLData() {
         const gl = this.gl
         if (!gl)
             throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.');
@@ -99,25 +99,15 @@ class WebGLRender {
             -1, 1);
     }
 
-    constructor(canvas, width, height) {
+    constructor(sim, canvas, width, height) {
+        this.sim = sim
         this.gl = canvas.getContext('webgl2');
         this.width = width
         this.height = height
         this.initializeWebGLData()
-
-
-        // Draw the scene repeatedly
-        function render(now) {
-            now *= 0.001;
-
-            this.drawScene(now);
-
-            requestAnimationFrame(render.bind(this));
-        }
-        requestAnimationFrame(render.bind(this));
     }
 
-    drawScene(now) {
+    draw(now = 0) {
         const gl = this.gl
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -134,13 +124,16 @@ class WebGLRender {
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
 
         const image = new Uint8Array(this.width * this.height * 4);
+        for(const layer of this.sim.layers)
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
+                const cell = layer.cells[i][j]
+                const col = cell.getColor()
                 const pos = (j * this.width + i) * 4
-                image[pos] = i;
-                image[pos + 1] = j;
-                image[pos + 2] = (i - now) * (j - now);
-                image[pos + 3] = 255;
+                image[pos + 0] = col[0];
+                image[pos + 1] = col[1];
+                image[pos + 2] = col[2];
+                image[pos + 3] = col.length == 3 ? 255 : col[3];
             }
         }
 
@@ -167,5 +160,7 @@ function loadShader(gl, type, source) {
 
     return shader;
 }
-const canvas = document.querySelector('#glcanvas');
-new WebGLRender(canvas, 200, 200);
+
+export {
+    WebGLRenderer
+}

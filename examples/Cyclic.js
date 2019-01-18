@@ -3,7 +3,7 @@ import {hueToRgb} from '../util.js'
 
 const cell_types = []
 const n = 16
-const colors = [...Array(n).keys()].map(i => `hsl(${i / n * 360},100%,50%)`) //hueToRgb(i * (1 / n)))
+const colors = [...Array(n).keys()].map(i => hueToRgb(i * (1 / n)))
 class C extends Cell {
     init() {
         this.value = Math.floor(Math.random() * n)

@@ -8,10 +8,10 @@ class Neuron extends Cell {
 
     getColor() {
         return this.state == 'on' 
-                                ? '#FFFFFF' 
+                                ? [255, 255, 255] 
                                 : this.state == 'off' 
-                                    ? '#000000'
-                                    : '#0000ff'
+                                    ? [0, 0, 0]
+                                    : [0, 0, 255]
     }
 
     update(neighs) {
