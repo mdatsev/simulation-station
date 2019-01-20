@@ -14,10 +14,12 @@ function createButton(callback, text) {
     return btn
 }
 
-function clickToCanvasCoordinates(canvas, event) {
-    const rect = canvas.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
+function clickToCanvasCoordinates(event, translateX, translateY, scale) {
+    const rect = event.target.getBoundingClientRect()
+    const canvasX = event.clientX - rect.left
+    const canvasY = event.clientY - rect.top
+    const x = (canvasX - translateX) / scale
+    const y = (canvasY - translateY) / scale
     return [x, y]
 }
 

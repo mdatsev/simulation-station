@@ -4,7 +4,7 @@ import {createCAControls} from '../UI.js'
 class GoL extends Cell {
 
     getColor() {
-        return this.alive ? '#FFFFFF' : '#000000'
+        return this.alive ? [255, 255, 255] : [0, 0, 0]
     }
 
     update(neighs) {
@@ -18,6 +18,6 @@ class GoL extends Cell {
     }
 }
 
-const ca = window.ca = new CellularAutomata(50, 50, GoL)
+const ca = window.ca = new CellularAutomata(50, 50, GoL, {scale:4})
 
 createCAControls(ca)

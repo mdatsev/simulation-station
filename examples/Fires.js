@@ -16,7 +16,7 @@ function terrain(x, y, noise, scale) {
 class Terrain extends Cell {
     init() {
         const v = this.height = Math.floor(terrain(this.x, this.y, simplex2d, 200) * 255)
-        this.color = `rgb(${v}, ${v}, ${v})`
+        this.color = [v, v, v]
         this.burning = 0
     }
 
@@ -41,9 +41,9 @@ class Fire extends Cell {
 
     getColor() {
         if(this.burning)
-            return 'red'
+            return [255, 0, 0]
         if(this.burned)
-            return 'brown'
+            return [128, 0, 0]
     }
 
     update() {

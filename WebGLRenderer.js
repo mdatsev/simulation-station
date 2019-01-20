@@ -4,7 +4,7 @@ const mat4 = glm.mat4
 
 class WebGLRenderer {
 
-    initializeWebGLData() {
+    initializeWebGLData(xRatio, yRatio) {
         const gl = this.gl
         if (!gl)
             throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.');
@@ -42,20 +42,20 @@ class WebGLRenderer {
         this.shaderProgram = shaderProgram
 
         const textureCoords = [
-            0.0, 0.0,
             1.0, 0.0,
+            0.0, 0.0,
             1.0, 1.0,
-            0.0, 1.0
-        ];
-                
-        const positions = [
-            -1.0, -1.0,
-            1.0, -1.0,
-            1.0, 1.0,
-            -1.0, 1.0
+            0.0, 1.0,
         ];
 
-        const indices = [0, 1, 2, 0, 2, 3];
+        const positions = [
+            xRatio,  yRatio,
+            -xRatio,  yRatio,
+            xRatio, -yRatio,
+            -xRatio, -yRatio,
+        ];
+
+        const indices = [0, 1, 2, 1, 2, 3];
 
         this.VAO = gl.createVertexArray();
         gl.bindVertexArray(this.VAO);
@@ -90,21 +90,31 @@ class WebGLRenderer {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         this.texture = texture
-
-        this.projectionMatrix = mat4.create();
-
-        mat4.ortho(this.projectionMatrix,
-            -1, 1,
-            -1, 1,
-            -1, 1);
     }
 
-    constructor(sim, canvas, width, height) {
+    constructor(sim, canvas, width, height, options) {
+        let {
+            scale = 1
+        } = options
+
         this.sim = sim
         this.gl = canvas.getContext('webgl2');
         this.width = width
         this.height = height
-        this.initializeWebGLData()
+        console.log(width, canvas.width, height, canvas.height)
+        this.initializeWebGLData(width / canvas.width, height / canvas.height)
+        this.scale = scale
+        this.translateX = 0
+        this.translateY = 0
+        this.projectionMatrix = mat4.create();
+        this.updateProjectionMatrix()
+    }
+
+    updateProjectionMatrix() {
+        mat4.fromRotationTranslationScale(this.projectionMatrix,
+            [0, 0, 0, 1],
+            [this.translateX, this.translateY, 0],
+            [this.scale, this.scale, 1]);
     }
 
     draw(now = 0) {
@@ -129,6 +139,8 @@ class WebGLRenderer {
             for (let j = 0; j < this.height; j++) {
                 const cell = layer.cells[i][j]
                 const col = cell.getColor()
+                if(!col)
+                    continue
                 const pos = (j * this.width + i) * 4
                 image[pos + 0] = col[0];
                 image[pos + 1] = col[1];

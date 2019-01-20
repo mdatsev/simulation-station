@@ -61,9 +61,11 @@ class CALayer extends Layer {
         this.cellTypes = cellTypes
     }
 
-    init(nxCells, nyCells, canvas = {}) {
+    init(nxCells, nyCells, options) {
         this.nxCells = nxCells
         this.nyCells = nyCells
+        this.cellxSize = 1
+        this.cellySize = 1
         this.cells = []
         this.running = false
         this.spreadRandomCells(this.cellTypes)
@@ -90,11 +92,10 @@ class CALayer extends Layer {
         }
     }   
 
-    onClick(event) {
-        let [x, y] = clickToCanvasCoordinates(this.canvas, event)
-        x = Math.floor(x / this.cellxSize)
-        y = Math.floor(y / this.cellySize)
-        const targetCell = this.cells[x][y]
+    onClick(x, y) {
+        const cell_x = Math.floor(x / this.cellxSize),
+              cell_y = Math.floor(y / this.cellySize)
+        const targetCell = this.cells[cell_x][cell_y]
         targetCell.onClick()
     }
 
