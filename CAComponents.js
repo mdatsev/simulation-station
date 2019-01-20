@@ -1,5 +1,5 @@
 import { Layer } from './CommonComponents.js'
-import { random, clickToCanvasCoordinates } from './util.js'
+import { random } from './util.js'
 
 class Cell {
     constructor(x, y, sim) {

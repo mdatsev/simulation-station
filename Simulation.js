@@ -2,7 +2,7 @@ import FrameCounter from './FrameCounter.js'
 import { Layer } from './CommonComponents.js'
 import { CALayer, Cell, EmptyCell } from './CAComponents.js'
 import { ABLayer, Agent } from './ABComponents.js'
-import { createCanvas, clickToCanvasCoordinates } from './util.js'
+import { createCanvas } from './util.js'
 import { WebGLRenderer } from './WebGLRenderer.js'
 
 function chooseCanvas(nxCells, nyCells, canvas, scale) {
@@ -26,10 +26,11 @@ class Simulation {
         this.layers = layers = layers instanceof Layer ? [layers] : layers
         canvas = chooseCanvas(xsize, ysize, canvas, scale)
         canvas.addEventListener('click', ev => this.layers.forEach(l => {
-            const [x, y] = clickToCanvasCoordinates(ev, this.renderer.translateX, this.renderer.translateY, this.renderer.scale)
+            const [x, y] = this.renderer.clickToCanvasCoordinates(ev)
             l.onClick(x, y)
             this.renderer.draw()
         }))
+        canvas.addEventListener('wheel', ev => this.renderer.onZoom(ev))
         for(const layer of layers) {
             layer.init(xsize, ysize, canvas)
         }

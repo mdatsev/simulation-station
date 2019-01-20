@@ -9,8 +9,18 @@ mat4.fromRotationTranslationScale(proj,
     [100, 100, 0],
     [1/4, 1/4, 1]);
 
+const pm = mat4.create()
+mat4.identity(pm);
 
-const point = vec4.fromValues(600, 600, -0.5, 0)
+const t = mat4.create()
+mat4.fromTranslation(t, [100, 100, 0])
+mat4.mul(pm, pm, t); 
+
+const s = mat4.create()
+mat4.fromScaling(s, [1/4, 1/4, 1/4])
+mat4.mul(pm, pm, s);
+
+const point = vec4.fromValues(400, 400, -0.5, 1)
 
 vec4.transformMat4(point, point, proj)
 

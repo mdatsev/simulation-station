@@ -4,7 +4,7 @@ const mat4 = glm.mat4
 
 class WebGLRenderer {
 
-    initializeWebGLData(xRatio, yRatio) {
+    initializeWebGLData(width, height) {
         const gl = this.gl
         if (!gl)
             throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.');
@@ -42,17 +42,17 @@ class WebGLRenderer {
         this.shaderProgram = shaderProgram
 
         const textureCoords = [
-            1.0, 0.0,
-            0.0, 0.0,
             1.0, 1.0,
             0.0, 1.0,
+            1.0, 0.0,
+            0.0, 0.0,
         ];
 
         const positions = [
-            xRatio,  yRatio,
-            -xRatio,  yRatio,
-            xRatio, -yRatio,
-            -xRatio, -yRatio,
+            width,  height,
+            0,  height,
+            width, 0,
+            0, 0,
         ];
 
         const indices = [0, 1, 2, 1, 2, 3];
@@ -87,7 +87,7 @@ class WebGLRenderer {
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         this.texture = texture
     }
@@ -102,19 +102,60 @@ class WebGLRenderer {
         this.width = width
         this.height = height
         console.log(width, canvas.width, height, canvas.height)
-        this.initializeWebGLData(width / canvas.width, height / canvas.height)
-        this.scale = scale
-        this.translateX = 0
-        this.translateY = 0
+        this.initializeWebGLData(width, height)
+        const w2 = canvas.width / 2 / (canvas.width / width)
+        const h2 = canvas.height / 2 / (canvas.height / height)
+        this.scaleX = 1 / w2
+        this.scaleY = 1 / h2
+        this.translateX = -w2
+        this.translateY = -h2
         this.projectionMatrix = mat4.create();
         this.updateProjectionMatrix()
     }
 
+    clickToCanvasCoordinates(event) {
+        const rect = event.target.getBoundingClientRect()
+        const canvasX = event.clientX - rect.left
+        const canvasY = event.clientY - rect.top
+        const viewport_x = canvasX / event.target.width * 2 - 1
+        const viewport_y = canvasY / event.target.height * 2 - 1
+        const x = (viewport_x / this.scaleX - this.translateX) 
+        const y = (viewport_y / this.scaleY - this.translateY)
+        return [x, y]
+    }
+
     updateProjectionMatrix() {
-        mat4.fromRotationTranslationScale(this.projectionMatrix,
-            [0, 0, 0, 1],
-            [this.translateX, this.translateY, 0],
-            [this.scale, this.scale, 1]);
+        const pm = this.projectionMatrix;
+        mat4.identity(pm);
+
+        const s = mat4.create()
+        mat4.fromScaling(s, [this.scaleX, -this.scaleY, 1])
+        mat4.mul(pm, pm, s);
+
+        const t = mat4.create()
+        mat4.fromTranslation(t, [this.translateX, this.translateY, 0])
+        mat4.mul(pm, pm, t);    
+    }
+    
+    onZoom(event) {
+        let [x, y] = this.clickToCanvasCoordinates(event)
+        const origTX = this.translateX
+        const origTY = this.translateY
+        this.translateX = -x;
+        this.translateY = -y;
+        let delta = 1 - event.deltaY * 0.002;
+        this.scaleX *= delta;
+        this.scaleY *= delta;
+        this.translateX += (origTX + x) / delta;
+        this.translateY += (origTY + y) / delta;
+        console.log(x, y, this.translateX, this.translateY)
+        this.updateProjectionMatrix()
+        this.draw()
+    }
+
+    onPan(event) {
+        translateX += mouseX - pmouseX;
+        translateY += mouseY - pmouseY;
     }
 
     draw(now = 0) {

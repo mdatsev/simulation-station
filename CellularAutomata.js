@@ -1,6 +1,3 @@
-import FrameCounter from './FrameCounter.js'
-import CARenderer from './CARenderer.js'
-import {random, createCanvas, clickToCanvasCoordinates} from './util.js'
 import {CALayer, Simulation, Cell, EmptyCell} from './Simulation.js'
 
 function CellularAutomata(nxCells, nyCells, cellTypes, simulation_options, layer_options) {
