@@ -2,6 +2,8 @@ import {simplex2d} from '../noisejs/noise.js'
 
 import {Cell, CALayer, Simulation} from '../Simulation.js'
 
+import {createLayerControls} from '../UI.js'
+
 function terrain(x, y, noise, scale) {
     x /= scale
     y /= scale
@@ -83,3 +85,4 @@ const fireLayer = new CALayer(Fire)
 
 const ca = window.ca = new Simulation(200, 200, [terrainLayer, fireLayer])
 ca.resume()
+createLayerControls(ca)

@@ -9,6 +9,10 @@ class WebGLRenderer {
         const gl = this.gl
         if (!gl)
             throw new Error('Unable to initialize WebGL. Your browser or machine may not support it.');
+
+        gl.enable(gl.BLEND);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.DST_ALPHA);
+
         const vsSource = `
             attribute vec4 aVertexPosition;
             attribute vec2 aTextureCoord;
@@ -266,9 +270,12 @@ class WebGLRenderer {
             for (let j = 0; j < this.height; j++) {
                 const cell = layer.cells[i][j]
                 const col = cell.getColor()
-                if(!col)
-                continue
                 const pos = (j * this.width + i) * 4
+                if(!col)
+                {
+                    this.image[pos + 3] = 0
+                    continue
+                }
                 this.image[pos + 0] = col[0];
                 this.image[pos + 1] = col[1];
                 this.image[pos + 2] = col[2];
@@ -330,12 +337,14 @@ class WebGLRenderer {
 
         for(const layer of this.sim.layers)
         {
-            if(layer instanceof CALayer) {
-                this.drawCALayer(layer)
-            }
-            else if(layer instanceof ABLayer) {
-                this.drawABLayer(layer)
-            }
+            if(layer.visible) {
+                if(layer instanceof CALayer) {
+                    this.drawCALayer(layer)
+                }
+                else if(layer instanceof ABLayer) {
+                    this.drawABLayer(layer)
+                }
+            }   
         }
         
     }
