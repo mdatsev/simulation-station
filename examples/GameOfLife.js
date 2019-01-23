@@ -3,7 +3,7 @@ import {CellularAutomata, Cell} from '../CellularAutomata.js'
 class GoL extends Cell {
 
     init() {
-        this.alive = this.x == 1 || this.y == 10//Math.random() > .5
+        this.alive = Math.random() > .5
     }
 
     getColor() {
@@ -16,6 +16,6 @@ class GoL extends Cell {
     }
 }
 
-const ca = new CellularAutomata(200, 200, GoL)
+const ca = new CellularAutomata(200, 200, GoL, {scale: 4})
 
-// ca.resume()
+ca.resume()

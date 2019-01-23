@@ -1,5 +1,4 @@
 import { Layer } from './CommonComponents.js'
-import ABRenderer from './ABRenderer.js'
 import { random } from './util.js'
 
 class ABLayer extends Layer {
@@ -12,11 +11,29 @@ class ABLayer extends Layer {
         this.toDestroy = []
     }
 
+    *getAgentsPartitioned() {
+        if(this.agents.length > 0) {
+            const done = []
+            const types = [this.agents[0].constructor]
+            while(types.length > 0) {
+                const partition = []
+                for(const a of this.agents) {
+                    if(a.constructor == types[0]) {
+                        partition.push(a)
+                    } else if(!types.includes(a.constructor) && !done.includes(a.constructor)) {
+                        types.push(a.constructor)
+                    }
+                }
+                yield [partition, types[0]]
+                done.push(types.shift())
+            }
+        }
+    }
+
     init(xSize, ySize, canvas) {
         this.width = xSize
         this.height = ySize
         this.canvas = canvas
-        this.renderer = new ABRenderer(this, canvas)
     }
 
     spreadRandom(agent, n, startx = this.origin.x, starty = this.origin.y, endx = this.width * this.scale, endy = this.height * this.scale) {
@@ -41,8 +58,6 @@ class ABLayer extends Layer {
     }
 
     tick() {
-        this.renderer.draw()
-
         this.old_agents = []
     
         for(let i = 0; i < this.agents.length; i++) {
@@ -55,7 +70,9 @@ class ABLayer extends Layer {
         }
         
         for(const a of this.toSpawn) {
-            this.agents.push(new (a.agent)(a.x, a.y, this))
+            const new_ag = new (a.agent)(a.x, a.y, this)
+            new_ag.init()
+            this.agents.push(new_ag)
         }
 
         this.toSpawn = []
@@ -91,6 +108,12 @@ class Agent {
     move(x, y) {
         this.x += x
         this.y += y
+        const w = this.ab.width
+        const h = this.ab.height
+        if(this.x > w) this.x = 0
+        if(this.x < 0) this.x = w
+        if(this.y > h) this.y = 0
+        if(this.y < 0) this.y = h
     }
     spawn(agent, x = this.x, y = this.y) {
         this.ab.spawn(agent, x, y)

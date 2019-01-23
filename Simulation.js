@@ -25,17 +25,20 @@ class Simulation {
         } = options
         this.layers = layers = layers instanceof Layer ? [layers] : layers
         canvas = chooseCanvas(xsize, ysize, canvas, scale)
+        console.log(canvas)
         canvas.addEventListener('click', ev => this.layers.forEach(l => {
             const [x, y] = this.renderer.clickToCanvasCoordinates(ev)
             l.onClick(x, y)
             this.renderer.draw()
         }))
+        canvas.addEventListener('mouseenter', ev => this.renderer.onEnter(ev));
+        canvas.addEventListener('mousemove', ev => this.renderer.onPan(ev))
         canvas.addEventListener('wheel', ev => this.renderer.onZoom(ev))
         for(const layer of layers) {
             layer.init(xsize, ysize, canvas)
         }
         this.renderer = new WebGLRenderer(this, canvas, xsize, ysize, { scale })
-        this.frameCounter = new FrameCounter(100)
+        this.frameCounter = new FrameCounter(10)
         this.renderer.draw() 
         this.running = false
         this.startLoop()
@@ -53,7 +56,7 @@ class Simulation {
         }
         this.renderer.draw()
         this.frameCounter.update()
-        console.log(this.frameCounter.getFramerate())
+        // console.log(this.frameCounter.getFramerate())
     }
 
     pause() {

@@ -1,20 +1,25 @@
-import {ABLayer, Simulation, Agent} from '../Simulation.js'
+import {ABLayer, CALayer, Simulation, Agent, Cell} from '../Simulation.js'
 
 const ab = new ABLayer()
-const srandom = () => (.5 - Math.random()) * 20
+const srandom = () => (.5 - Math.random()) * 4
 class Rabbit extends Agent {
 
-    getColor() {
-        return '#808080'
+    init() {
+        this.vx = srandom()
+        this.vy = srandom()
+    }
+
+    static getTexture() {
+        return '../rabbit.png'
     }
 
     update() {
         const r = Math.random()
-        if(r > .994)
+        if(r > .99)
         {
             this.spawn(Rabbit)
         }
-        this.move(srandom(), srandom())
+        this.move(this.vx, this.vy)
     }
 }
 
@@ -22,10 +27,12 @@ class Fox extends Agent {
 
     init() {
         this.hunger = 0
+        this.vx = srandom()
+        this.vy = srandom()
     }
 
-    getColor() {
-        return '#ff0000'
+    static getTexture() {
+        return '../fox.png'
     }
 
     update() {
@@ -33,17 +40,17 @@ class Fox extends Agent {
         if(this.hunger > 100) {
             this.destroy(this)
         }
-        this.neighsWithin(5, Rabbit).forEach(a => {
+        this.neighsWithin(20, Rabbit).forEach(a => {
             this.destroy(a)
             if(Math.random() > .9)
                 this.spawn(Fox)
             this.hunger = 0
         })
-        this.move(srandom(), srandom())
+        this.move(this.vx, this.vy)
     }
 }
 
-const sim = window.sim = new Simulation(600, 600, [ab])
-ab.spreadRandom(Fox, 100)
-ab.spreadRandom(Rabbit, 2000)
+const sim = window.sim = new Simulation(800, 800, ab)
+ab.spreadRandom(Fox, 20)
+ab.spreadRandom(Rabbit, 50)
 sim.resume()

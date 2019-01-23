@@ -1,4 +1,5 @@
 import glm from './gl-matrix/gl-matrix.js'
+import { CALayer, ABLayer } from './Simulation.js'
 
 const mat4 = glm.mat4
 
@@ -20,6 +21,19 @@ class WebGLRenderer {
         `;
         const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
 
+        const vsSourceInstanced = `
+            attribute vec4 aVertexPosition;
+            attribute vec2 aTextureCoord;
+            attribute mat4 aModelViewMatrix;
+            uniform mat4 uProjectionMatrix;
+            varying highp vec2 vTextureCoord;
+            void main(void) {
+                gl_Position = uProjectionMatrix * aModelViewMatrix * aVertexPosition;
+                vTextureCoord = aTextureCoord;
+            }
+        `;
+        const vertexShaderInstanced = loadShader(gl, gl.VERTEX_SHADER, vsSourceInstanced);
+
         const fsSource = `
             varying highp vec2 vTextureCoord;
             uniform sampler2D uSampler;
@@ -37,9 +51,21 @@ class WebGLRenderer {
         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS))
             throw new Error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
 
+        const shaderProgramInstanced = gl.createProgram();
+        gl.attachShader(shaderProgramInstanced, vertexShaderInstanced);
+        gl.attachShader(shaderProgramInstanced, fragmentShader);
+        gl.linkProgram(shaderProgramInstanced);
+
+        if (!gl.getProgramParameter(shaderProgramInstanced, gl.LINK_STATUS))
+            throw new Error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+
         this.uprojectionMatrix = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
         this.uSampler = gl.getUniformLocation(shaderProgram, 'uSampler')
         this.shaderProgram = shaderProgram
+
+        this.uprojectionMatrixInstanced = gl.getUniformLocation(shaderProgramInstanced, 'uProjectionMatrix');
+        this.uSamplerInstanced = gl.getUniformLocation(shaderProgramInstanced, 'uSampler')
+        this.shaderProgramInstanced = shaderProgramInstanced
 
         const textureCoords = [
             1.0, 1.0,
@@ -55,10 +81,14 @@ class WebGLRenderer {
             0, 0,
         ];
 
-        const indices = [0, 1, 2, 1, 2, 3];
+        const positionsInstanced = [
+            1,  1,
+            0,  1,
+            1, 0,
+            0, 0,
+        ];
 
-        this.VAO = gl.createVertexArray();
-        gl.bindVertexArray(this.VAO);
+        const indices = [0, 1, 2, 1, 2, 3];
 
         function createBuffer(target, arr) {
             const buffer = gl.createBuffer();
@@ -66,18 +96,43 @@ class WebGLRenderer {
             gl.bufferData(target, arr, gl.STATIC_DRAW);
             return buffer
         }
-        function setAttribute(attr) {
+
+        function setAttribute(shaderProgram, attr) {
             const a = gl.getAttribLocation(shaderProgram, attr);
             gl.enableVertexAttribArray(a);
             gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
         }
 
+        this.VAO = gl.createVertexArray();
+        gl.bindVertexArray(this.VAO);
         createBuffer(gl.ARRAY_BUFFER, new Float32Array(positions))
-        setAttribute('aVertexPosition')
+        setAttribute(shaderProgram, 'aVertexPosition')
         createBuffer(gl.ARRAY_BUFFER, new Float32Array(textureCoords))
-        setAttribute('aTextureCoord')
-
+        setAttribute(shaderProgram, 'aTextureCoord')
         this.EBO = createBuffer(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices))
+
+        this.VAOInstanced = gl.createVertexArray();
+        gl.bindVertexArray(this.VAOInstanced);
+        createBuffer(gl.ARRAY_BUFFER, new Float32Array(positionsInstanced))
+        setAttribute(shaderProgramInstanced, 'aVertexPosition')
+        createBuffer(gl.ARRAY_BUFFER, new Float32Array(textureCoords))        
+        setAttribute(shaderProgramInstanced, 'aTextureCoord')
+        
+            
+
+        this.agentsBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.agentsBuffer);
+        
+
+        let pos = gl.getAttribLocation(shaderProgramInstanced, 'aModelViewMatrix');
+
+
+        for (var i = 0; i < 4; ++i) {
+            gl.vertexAttribDivisor( pos+i, 1 );
+            gl.enableVertexAttribArray(pos + i);
+            gl.vertexAttribPointer(pos + i, 4, gl.FLOAT, 0, 64, i * 16);
+        }
+        this.EBOInstanced = createBuffer(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices))
 
         const texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -103,6 +158,8 @@ class WebGLRenderer {
         this.height = height
         console.log(width, canvas.width, height, canvas.height)
         this.initializeWebGLData(width, height)
+        this.textures = {}
+        this.image = new Uint8Array(this.width * this.height * 4);
         const w2 = canvas.width / 2 / (canvas.width / width)
         const h2 = canvas.height / 2 / (canvas.height / height)
         this.scaleX = 1 / w2
@@ -111,6 +168,27 @@ class WebGLRenderer {
         this.translateY = -h2
         this.projectionMatrix = mat4.create();
         this.updateProjectionMatrix()
+    }
+
+    loadTexture(path) {
+        const gl = this.gl
+        const textureInstanced = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, textureInstanced);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+            1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+            new Uint8Array([255, 0, 255, 255]));
+
+        const image = new Image();
+        image.onload = function() {
+            gl.bindTexture(gl.TEXTURE_2D, textureInstanced);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+                          gl.RGBA, gl.UNSIGNED_BYTE, image);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+          };
+          image.src = path;
+          this.textures[path] = textureInstanced;
     }
 
     clickToCanvasCoordinates(event) {
@@ -125,16 +203,12 @@ class WebGLRenderer {
     }
 
     updateProjectionMatrix() {
-        const pm = this.projectionMatrix;
-        mat4.identity(pm);
-
         const s = mat4.create()
         mat4.fromScaling(s, [this.scaleX, -this.scaleY, 1])
-        mat4.mul(pm, pm, s);
-
         const t = mat4.create()
         mat4.fromTranslation(t, [this.translateX, this.translateY, 0])
-        mat4.mul(pm, pm, t);    
+        mat4.mul(s, s, t);
+        this.projectionMatrix = s;
     }
     
     onZoom(event) {
@@ -154,8 +228,99 @@ class WebGLRenderer {
     }
 
     onPan(event) {
-        translateX += mouseX - pmouseX;
-        translateY += mouseY - pmouseY;
+        let [x, y] = this.clickToCanvasCoordinates(event)
+        if(event.buttons & 1) {
+            this.translateX += x - this.pmouseX;
+            this.translateY += y - this.pmouseY;
+        }
+        this.pmouseX = x
+        this.pmouseY = y
+        this.updateProjectionMatrix()
+        this.draw()
+    }
+
+    onEnter(event) {
+        let [x, y] = this.clickToCanvasCoordinates(event)
+        this.pmouseX = x
+        this.pmouseY = y
+    }
+
+    drawCALayer(layer) {
+        const gl = this.gl
+
+
+        gl.useProgram(this.shaderProgram);
+
+        gl.uniformMatrix4fv(
+            this.uprojectionMatrix,
+            false,
+            this.projectionMatrix );        
+
+        gl.bindVertexArray(this.VAO)
+        gl.activeTexture(gl.TEXTURE0);
+
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+
+
+        for (let i = 0; i < this.width; i++) {
+            for (let j = 0; j < this.height; j++) {
+                const cell = layer.cells[i][j]
+                const col = cell.getColor()
+                if(!col)
+                continue
+                const pos = (j * this.width + i) * 4
+                this.image[pos + 0] = col[0];
+                this.image[pos + 1] = col[1];
+                this.image[pos + 2] = col[2];
+                this.image[pos + 3] = col.length == 3 ? 255 : col[3];
+            }
+        }
+
+        gl.texSubImage2D(gl.TEXTURE_2D, 0,
+            0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE,
+            this.image);
+
+        gl.uniform1i(this.uSampler, 0);
+
+        gl.drawElementsInstanced(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0, 4);
+    }
+
+    drawABLayer(layer) {
+        const gl = this.gl
+        
+        gl.useProgram(this.shaderProgramInstanced);
+
+        gl.uniformMatrix4fv(
+            this.uprojectionMatrixInstanced,
+            false,
+            this.projectionMatrix);        
+
+        for(const [agents, type] of layer.getAgentsPartitioned()) {
+            const tpath = type.getTexture();
+            const texture = this.textures[tpath] || this.loadTexture(tpath)
+            gl.bindVertexArray(this.VAOInstanced)
+            gl.activeTexture(gl.TEXTURE0);
+
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+
+            let buf = []
+            for(const agent of agents) {
+                let t = mat4.create()
+                mat4.fromTranslation(t, [agent.x, agent.y, 0])
+                let s = mat4.create()
+                mat4.fromScaling(s, [40, 40, 0])
+                mat4.mul(t, t, s)
+                buf.push(...t)
+            }
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.agentsBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(buf), gl.DYNAMIC_DRAW);
+
+
+            gl.uniform1i(this.uSamplerInstanced, 0);
+            gl.uniform1i(this.uSamplerInstanced, 0);
+            gl.drawElementsInstanced(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0, agents.length);
+        }
+        
     }
 
     draw(now = 0) {
@@ -163,40 +328,15 @@ class WebGLRenderer {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.useProgram(this.shaderProgram);
-
-        gl.uniformMatrix4fv(
-            this.uprojectionMatrix,
-            false,
-            this.projectionMatrix );
-
-        gl.activeTexture(gl.TEXTURE0);
-
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
-
-        const image = new Uint8Array(this.width * this.height * 4);
         for(const layer of this.sim.layers)
-        for (let i = 0; i < this.width; i++) {
-            for (let j = 0; j < this.height; j++) {
-                const cell = layer.cells[i][j]
-                const col = cell.getColor()
-                if(!col)
-                    continue
-                const pos = (j * this.width + i) * 4
-                image[pos + 0] = col[0];
-                image[pos + 1] = col[1];
-                image[pos + 2] = col[2];
-                image[pos + 3] = col.length == 3 ? 255 : col[3];
+        {
+            if(layer instanceof CALayer) {
+                this.drawCALayer(layer)
+            }
+            else if(layer instanceof ABLayer) {
+                this.drawABLayer(layer)
             }
         }
-
-        gl.texSubImage2D(gl.TEXTURE_2D, 0,
-            0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE,
-            image);
-
-        gl.uniform1i(this.uSampler, 0);
-
-        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
         
     }
 }
