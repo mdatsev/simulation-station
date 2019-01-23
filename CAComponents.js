@@ -138,17 +138,22 @@ class CALayer extends Layer {
 
     cells_safe(cells, x, y) {
         const mod = (n, M) => ((n % M) + M) % M
+        if(!cells)
+            debugger
         return cells[mod(x, this.nxCells)][mod(y, this.nyCells)]
     }
 
-    tick() {
-        const old_cells = this.old_cells = []
+    prepareForUpdate() {
+        this.old_cells = []
         for(let x = 0; x < this.nxCells; x++) {
-            old_cells.push([])
+            this.old_cells.push([])
             for(let y = 0; y < this.nyCells; y++) {
-                old_cells[x].push(Object.assign(new (this.cells[x][y].constructor)(), this.cells[x][y]))
+                this.old_cells[x].push(Object.assign(new (this.cells[x][y].constructor)(), this.cells[x][y]))
             }
         }
+    }
+
+    tick() {
         for(const cell of this.getCellsIterator()) {
             const int = cell._ssinternal
             const new_type = int.become_cell

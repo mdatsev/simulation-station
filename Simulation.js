@@ -52,6 +52,9 @@ class Simulation {
 
     tick() {
         for(const layer of this.layers) {
+            layer.prepareForUpdate()
+        }
+        for(const layer of this.layers) {
             layer.tick()
         }
         this.renderer.draw()

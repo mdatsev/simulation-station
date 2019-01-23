@@ -57,14 +57,16 @@ class ABLayer extends Layer {
         }
     }
 
-    tick() {
+    prepareForUpdate() {
         this.old_agents = []
     
         for(let i = 0; i < this.agents.length; i++) {
             this.old_agents.push(Object.assign(new (this.agents[i].constructor)(), this.agents[i]))
             this.old_agents[i]._ssinternal.original = this.agents[i]
         }
+    }
 
+    tick() {
         for(let i = 0; i < this.agents.length; i++) {
             this.agents[i].update()
         }
