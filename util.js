@@ -9,7 +9,6 @@ function createCanvas(width, height) {
 function createButton(callback, text) {
     const btn = document.createElement('button')
     btn.innerHTML = text
-    document.body.appendChild(btn)
     btn.addEventListener('click', callback)
     return btn
 }

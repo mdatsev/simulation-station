@@ -1,16 +1,5 @@
 import {createButton} from './util.js'
 
-function createCAControls(ca, parent = document.body) {
-    
-    const el = document.createElement('div')
-    
-    el.appendChild(createButton(() => ca.pause(), 'Pause'))
-    el.appendChild(createButton(() => ca.resume(), 'Resume'))
-    el.appendChild(createButton(() => ca.tick(), 'Step'))
-
-    return parent.appendChild(el)
-}
-
 function createCheckboxLabel(callback, text) {
     var cb = document.createElement('input');
     cb.type = 'checkbox';
@@ -28,8 +17,33 @@ function createLayerControls(sim, parent = document.body) {
     return parent.appendChild(el)
 }
 
+function createTimeControls(sim, parent = document.body) {
+    
+    const el = document.createElement('div')
+    
+    el.appendChild(createButton(() => sim.pause(), 'Pause'))
+    el.appendChild(createButton(() => sim.resume(), 'Resume'))
+    el.appendChild(createButton(() => sim.tick(), 'Step'))
+    el.appendChild(createButton(() => sim.init(), 'Restart'))
+
+    return parent.appendChild(el)
+}
+
+function createPropertyControl(object, property, parent = document.body, value = object[property]) {
+    const input = document.createElement('input')
+    switch(value.constructor) {
+        case String: input.type = 'text'; break;
+        case Number: input.type = 'number'; break;
+    }
+    input.value = object[property];
+    input.addEventListener('input', ev => {
+        object[property] = input.value
+    }) 
+    return parent.appendChild(input)
+}
 
 export {
-    createCAControls,
-    createLayerControls
+    createTimeControls,
+    createLayerControls,
+    createPropertyControl
 }

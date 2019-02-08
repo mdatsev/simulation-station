@@ -1,4 +1,12 @@
 import {ABLayer, CALayer, Simulation, Agent, Cell} from '../Simulation.js'
+import { createTimeControls, createPropertyControl } from '../UI.js'
+
+const params = {
+    rabbitChance: .99,
+    foxChance: .9,
+    foxHunger: 100,
+    distanceToEat: 20
+}
 
 const ab = new ABLayer()
 const srandom = () => (.5 - Math.random()) * 4
@@ -15,7 +23,7 @@ class Rabbit extends Agent {
 
     update() {
         const r = Math.random()
-        if(r > .99)
+        if(r > params.rabbitChance)
         {
             this.spawn(Rabbit)
         }
@@ -37,20 +45,26 @@ class Fox extends Agent {
 
     update() {
         this.hunger++
-        if(this.hunger > 100) {
+        if(this.hunger > params.foxHunger) {
             this.destroy(this)
         }
-        this.neighsWithin(20, Rabbit).forEach(a => {
+        this.neighsWithin(params.distanceToEat, Rabbit).forEach(a => {
             this.destroy(a)
-            if(Math.random() > .9)
+            if(Math.random() > params.foxChance)
                 this.spawn(Fox)
             this.hunger = 0
         })
         this.move(this.vx, this.vy)
     }
 }
+createTimeControls(new Simulation(800, 800, ab, {init: s => {
+    ab.spreadRandom(Fox, 20)
+    ab.spreadRandom(Rabbit, 50)
+    s.resume()
+}}))
 
-const sim = window.sim = new Simulation(800, 800, ab)
-ab.spreadRandom(Fox, 20)
-ab.spreadRandom(Rabbit, 50)
-sim.resume()
+createPropertyControl(params, 'rabbitChance')
+createPropertyControl(params, 'foxChance')
+createPropertyControl(params, 'foxHunger')
+createPropertyControl(params, 'distanceToEat')
+

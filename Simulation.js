@@ -21,9 +21,13 @@ class Simulation {
     constructor(xsize, ysize, layers, options = {}) {
         let {
             canvas,
-            scale
+            scale,
+            init
         } = options
+        this.initFunction = init
         this.layers = layers = layers instanceof Layer ? [layers] : layers
+        this.xsize = xsize
+        this.ysize = ysize
         canvas = chooseCanvas(xsize, ysize, canvas, scale)
         console.log(canvas)
         canvas.addEventListener('click', ev => this.layers.forEach(l => {
@@ -34,14 +38,21 @@ class Simulation {
         canvas.addEventListener('mouseenter', ev => this.renderer.onEnter(ev));
         canvas.addEventListener('mousemove', ev => this.renderer.onPan(ev))
         canvas.addEventListener('wheel', ev => this.renderer.onZoom(ev))
-        for(const layer of layers) {
-            layer.init(xsize, ysize, canvas)
-        }
         this.renderer = new WebGLRenderer(this, canvas, xsize, ysize, { scale })
         this.frameCounter = new FrameCounter(10)
-        this.renderer.draw() 
         this.running = false
         this.startLoop()
+        this.init()
+    }
+
+    init() {
+        for(const layer of this.layers) {
+            layer.init(this.xsize, this.ysize)
+        }
+        if(this.initFunction) {
+            this.initFunction(this)
+        }
+        this.renderer.draw()
     }
 
     startLoop() {

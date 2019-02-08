@@ -4,11 +4,7 @@ import { random } from './util.js'
 class ABLayer extends Layer {
     constructor() {
         super()
-        this.origin = {x: 0, y:0}
-        this.scale = 1
-        this.agents = []
-        this.toSpawn = []
-        this.toDestroy = []
+        this.init()
     }
 
     *getAgentsPartitioned() {
@@ -30,10 +26,14 @@ class ABLayer extends Layer {
         }
     }
 
-    init(xSize, ySize, canvas) {
+    init(xSize, ySize) {
+        this.origin = {x: 0, y:0}
+        this.scale = 1
+        this.agents = []
+        this.toSpawn = []
+        this.toDestroy = []
         this.width = xSize
         this.height = ySize
-        this.canvas = canvas
     }
 
     spreadRandom(agent, n, startx = this.origin.x, starty = this.origin.y, endx = this.width * this.scale, endy = this.height * this.scale) {
