@@ -154,15 +154,27 @@ class CALayer extends Layer {
     }
 
     tick() {
+        const generators = []
         for(const cell of this.getCellsIterator()) {
-            const int = cell._ssinternal
-            const new_type = int.become_cell
+            if(cell.updateParallel != Cell.prototype.updateParallel)
+                generators.push(cell.updateParallel())
+            else
+                generators.push({next:function(){
+                    cell.update(cell.getMooreNeighbours())
+                    return {done:true}
+                }})
+        }
+        for(let updated = false; !updated; ) {
+            updated = true
+            for(const g of generators) {
+                const {done} = g.next()
+                updated &= done
+            }
+        }
+        for(const cell of this.getCellsIterator()) {
+            const new_type = cell._ssinternal.become_cell
             if(new_type) {
                 (this.cells[cell.x][cell.y] = new (new_type)(cell.x, cell.y, this)).init()
-            } else {
-                const x = cell.x
-                const y = cell.y
-                cell.update(cell.getMooreNeighbours())
             }
         }
     }
