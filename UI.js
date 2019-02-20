@@ -12,7 +12,7 @@ function createLayerControls(sim, parent = document.body) {
     
     const el = document.createElement('div')
     for(const layer of sim.layers) {
-        el.appendChild(createCheckboxLabel(() => layer.visible ^= 1))
+        el.appendChild(createCheckboxLabel(() => {layer.visible ^= 1; sim.renderer.draw()}))
     }
     return parent.appendChild(el)
 }

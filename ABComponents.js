@@ -112,10 +112,10 @@ class Agent {
         this.y += y
         const w = this.ab.width
         const h = this.ab.height
-        if(this.x > w) this.x = 0
-        if(this.x < 0) this.x = w
-        if(this.y > h) this.y = 0
-        if(this.y < 0) this.y = h
+        if(this.x >= w) this.x = this.x-w
+        if(this.x < 0) this.x = w+this.x
+        if(this.y >= h) this.y = this.y-h
+        if(this.y < 0) this.y = h+this.y
     }
     spawn(agent, x = this.x, y = this.y) {
         this.ab.spawn(agent, x, y)
@@ -125,6 +125,9 @@ class Agent {
     }
     neighsWithin(dist, type) {
         return this.ab.neighsWithin(this, dist, type)
+    }
+    on(layer) {
+        return layer.cells[Math.floor(this.x)][Math.floor(this.y)] //todo adjust for scale
     }
     update() { }
     init() { }
