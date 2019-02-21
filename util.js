@@ -50,10 +50,15 @@ function hueToRgb(h) {
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
 }
 
+function clamp(value, min, max) {
+    return value < min ? min : value > max ? max : value; 
+}
+
 export {
     random,
     createCanvas,
     createButton,
     map,
+    clamp,
     hueToRgb
 }

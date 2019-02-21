@@ -18,7 +18,7 @@ class Rabbit extends Agent {
     }
 
     static getTexture() {
-        return '../rabbit.png'
+        return './rabbit.png'
     }
 
     update() {
@@ -40,7 +40,7 @@ class Fox extends Agent {
     }
 
     static getTexture() {
-        return '../fox.png'
+        return './fox.png'
     }
 
     update() {

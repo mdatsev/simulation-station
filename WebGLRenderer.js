@@ -315,7 +315,7 @@ class WebGLRenderer {
                 let t = mat4.create()
                 mat4.fromTranslation(t, [agent.x, agent.y, 0])
                 let s = mat4.create()
-                mat4.fromScaling(s, [40, 40, 0])
+                mat4.fromScaling(s, [1, 1, 0])
                 mat4.mul(t, t, s)
                 buf.push(...t)
             }
