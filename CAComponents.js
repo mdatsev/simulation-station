@@ -1,6 +1,8 @@
 import { Layer } from './CommonComponents.js'
 import { random } from './util.js'
 
+
+
 class Cell {
     constructor(x, y, sim) {
         this.x = x
@@ -14,14 +16,34 @@ class Cell {
     }
 
     getMooreNeighbours(layer = this._ssinternal.sim){
+        return [...this.getVonNeumannNeighbours(), ...this.getDiagonalNeighbours()]
+    }
+
+    getVonNeumannNeighbours(layer = this._ssinternal.sim){
         const x = this.x
         const y = this.y
         return [
             [x + 1, y    ],
             [x,     y + 1],
-            [x + 1, y + 1],
             [x - 1, y    ],
-            [x,     y - 1],
+            [x,     y - 1]].map(p => layer.cells_safe(layer.old_cells, ...p))
+    }
+
+    getRandomNeigh(layer = this._ssinternal.sim){
+        const x = this.x
+        const y = this.y
+        return layer.cells_safe(layer.cells, ...random([
+            [x + 1, y    ],
+            [x,     y + 1],
+            [x - 1, y    ],
+            [x,     y - 1]]))
+    }
+
+    getDiagonalNeighbours(layer = this._ssinternal.sim){
+        const x = this.x
+        const y = this.y
+        return [
+            [x + 1, y + 1],
             [x - 1, y - 1],
             [x + 1, y - 1],
             [x - 1, y + 1]].map(p => layer.cells_safe(layer.old_cells, ...p))
@@ -148,7 +170,10 @@ class CALayer extends Layer {
         for(let x = 0; x < this.nxCells; x++) {
             this.old_cells.push([])
             for(let y = 0; y < this.nyCells; y++) {
-                this.old_cells[x].push(Object.assign(new (this.cells[x][y].constructor)(), this.cells[x][y]))
+                const curr = this.cells[x][y]
+                const old = Object.assign(new (this.cells[x][y].constructor)(), curr)
+                old.curr = curr
+                this.old_cells[x].push(old)
             }
         }
     }
