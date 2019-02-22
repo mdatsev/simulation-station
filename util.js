@@ -64,6 +64,10 @@ function gradient(c1, c2, n) {
     ]
 }
 
+function chance(p) {
+    return Math.random() < p
+}
+
 export {
     random,
     createCanvas,
@@ -71,5 +75,6 @@ export {
     map,
     clamp,
     hueToRgb,
-    gradient
+    gradient,
+    chance
 }

@@ -1,6 +1,6 @@
 import {CALayer, ABLayer, Cell, Agent, Simulation, simpleValueCell} from '../Simulation.js'
-import {clamp} from '../util.js'
 import {createLayerControls, createTimeControls} from '../UI.js'
+import {chance, random} from '../util.js'
 
 const params = {
 
@@ -31,7 +31,7 @@ class Dead extends Cell {
     }
     update() {
         const regenerateProb = 1 * params.regenCoef; //todo use inert cell count
-        if(Math.random() < regenerateProb)
+        if(chance(regenerateProb))
             this.become(Alive);
     }
 }
@@ -41,11 +41,11 @@ class Alive extends simpleValueCell([255, 230, 230], [255, 0, 0], params.tissueM
     update() { 
         const infectProb = this.on(patho).value * params.infectionProbCoef;
         if(this.value === 0) {
-            if(Math.random() < infectProb)
+            if(chance(infectProb))
                 this.add(1)
         } else if(this.value > 0) {
             this.add(1)
-            if(Math.random() < params.infectionSpreadProb)
+            if(chance(params.infectionSpreadProb))
             {
                 const n = this.getRandomNeigh()
                 if(n instanceof Alive) {
@@ -55,7 +55,7 @@ class Alive extends simpleValueCell([255, 230, 230], [255, 0, 0], params.tissueM
 
             if(this.value > 500) {
                 const deathProb = this.value * params.deathProb;
-                if (Math.random() < deathProb)
+                if (chance(deathProb))
                     this.become(Dead)
             }
         } else {
@@ -70,39 +70,19 @@ const chemo = new CALayer(class extends simpleValueCell([153, 0, 51], [255, 255,
     update() {
         let basePortion = 0;
 
-        const diag = this.M()
-        const str8 = this.getVonNeumannNeighbours()
-        for(const n of diag) {
-            if(this.value > n.value)
-                basePortion += Math.SQRT2
+        const neighs = this.getMooreNeighbours()
+        const dist = this.getMooreDistances()
+        for(let i = 0; i < neighs.length; i++) {
+            if(this.value > neighs[i].value)
+                basePortion += dist[i]
         }
-        for(const n of str8) {
-            if(this.value > n.value)
-                basePortion += 1
-        }
-        if(basePortion > 0) {
-            // debugger
-        }
-        for(const n of diag) {
-            if(this.value > n.value)
+        for(let i = 0; i < neighs.length; i++) {
+            if(this.value > neighs[i].value)
             {
-                const portion = basePortion*Math.SQRT2;
+                const portion = basePortion * dist[i];
                 
-                
-                const amount = (this.value - n.value) / Math.floor(portion);
-                n.curr.add(amount);
-                this.add(-amount);
-            }
-        }
-        for(const n of str8) {
-            if(this.value > n.value)
-            {
-                const portion = basePortion;
-                
-                
-                const amount = (this.value - n.value) / Math.floor(portion);
-
-                n.curr.add(amount);
+                const amount = (this.value - neighs[i].value) / Math.floor(portion);
+                neighs[i].curr.add(amount);
                 this.add(-amount);
             }
         }
@@ -117,7 +97,7 @@ const chemo = new CALayer(class extends simpleValueCell([153, 0, 51], [255, 255,
 
 const patho = new CALayer(class extends simpleValueCell([255, 255, 255], [255, 0, 0], params.pathoMax) {
     update() {
-        if(Math.random() < params.pathoProb &&
+        if(chance(params.pathoProb) &&
                 this.value < params.pathoMax)
             this.add(200);
 
@@ -125,7 +105,7 @@ const patho = new CALayer(class extends simpleValueCell([255, 255, 255], [255, 0
         const low = params.pathoMoveMinRatio;
         const high = params.pathoMoveMaxRatio;
 
-        const amount = (Math.random() * (high - low) + low) * this.value;
+        const amount = random(low, high) * this.value;
         
         this.add(-amount)
 
@@ -142,7 +122,7 @@ class Mast extends Agent {
         if(sum > 0 && this.on(chemo).value < 1000)
             this.on(chemo).add(sum * 500);
 
-        if(Math.random() < params.mastStrayProb)
+        if(chance(params.mastStrayProb))
             this.move(...random_dir());
         else
         {

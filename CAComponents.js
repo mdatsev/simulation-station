@@ -1,6 +1,24 @@
 import { Layer } from './CommonComponents.js'
 import { random, clamp, gradient } from './util.js'
 
+const VON_NEUMANN_NEIGHS = [
+    [ 1,  0],
+    [ 0,  1],
+    [-1,  0],
+    [ 0, -1]
+]
+
+const DIAG_NEIGHS = [
+    [ 1,  1],
+    [-1,  1],
+    [-1, -1],
+    [ 1, -1]
+]
+
+const MOORE_NEIGHS = [
+    ...VON_NEUMANN_NEIGHS,
+    ...DIAG_NEIGHS
+]
 
 
 class Cell {
@@ -15,18 +33,26 @@ class Cell {
         this._ssinternal.become_cell = cell_type
     }
 
-    getMooreNeighbours(layer = this._ssinternal.sim){
-        return [...this.getVonNeumannNeighbours(), ...this.getDiagonalNeighbours()]
+    getMooreDistances() {
+        return MOORE_NEIGHS.map(c => Math.sqrt(c[0] * c[0] + c[1] * c[1]))
     }
 
-    getVonNeumannNeighbours(layer = this._ssinternal.sim){
-        const x = this.x
-        const y = this.y
-        return [
-            [x + 1, y    ],
-            [x,     y + 1],
-            [x - 1, y    ],
-            [x,     y - 1]].map(p => layer.cells_safe(layer.old_cells, ...p))
+    getNeighs(coords, layer = this._ssinternal.sim) {
+        return coords
+            .map(([a, b]) => [this.x + a, this.y + b])
+            .map(p => layer.cells_safe(layer.old_cells, ...p))
+    }
+
+    getVonNeumannNeighbours(layer){
+        return this.getNeighs(VON_NEUMANN_NEIGHS, layer)
+    }
+
+    getDiagonalNeighbours(layer){
+        return this.getNeighs(DIAG_NEIGHS, layer)
+    }
+
+    getMooreNeighbours(layer){
+        return this.getNeighs(MOORE_NEIGHS, layer)
     }
 
     getRandomNeigh(layer = this._ssinternal.sim){
@@ -37,16 +63,6 @@ class Cell {
             [x,     y + 1],
             [x - 1, y    ],
             [x,     y - 1]]))
-    }
-
-    getDiagonalNeighbours(layer = this._ssinternal.sim){
-        const x = this.x
-        const y = this.y
-        return [
-            [x + 1, y + 1],
-            [x - 1, y - 1],
-            [x + 1, y - 1],
-            [x - 1, y + 1]].map(p => layer.cells_safe(layer.old_cells, ...p))
     }
 
     on(layer) {
