@@ -213,7 +213,7 @@ function simpleValueCell(minColor, maxColor, max, min = 0) {
             this.delta = 0
         }
         add(value) {
-            this.value += value
+            this.delta += value
         }
         getColor() {
             return gradient(minColor, maxColor, this.value / max)
