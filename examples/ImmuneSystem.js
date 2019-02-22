@@ -1,4 +1,4 @@
-import {CALayer, ABLayer, Cell, Agent, Simulation} from '../Simulation.js'
+import {CALayer, ABLayer, Cell, Agent, Simulation, simpleValueCell} from '../Simulation.js'
 import {clamp} from '../util.js'
 import {createLayerControls, createTimeControls} from '../UI.js'
 
@@ -25,15 +25,6 @@ const params = {
 
 const random_dir = _ => [1-Math.floor(Math.random() * 3), 1-Math.floor(Math.random() * 3)]
 
-function gradient(c1, c2, n) {
-    n = clamp(n, 0, 1)
-    return [
-        c1[0] + (c2[0] - c1[0]) * n,
-        c1[1] + (c2[1] - c1[1]) * n,
-        c1[2] + (c2[2] - c1[2]) * n
-    ]
-}
-
 class Dead extends Cell {
     getColor() {
         return [0,0,0]
@@ -45,17 +36,8 @@ class Dead extends Cell {
     }
 }
 
-class Alive extends Cell {
-    init() {
-        this.value = 0
-        this.delta = 0
-    }
-    add(value) {
-        this.value += value
-    }
-    getColor() {
-        return gradient([255, 230, 230], [255, 0, 0], this.value / params.tissueMax)
-    }
+
+class Alive extends simpleValueCell([255, 230, 230], [255, 0, 0], params.tissueMax) {
     update() { 
         const infectProb = this.on(patho).value * params.infectionProbCoef;
         if(this.value === 0) {
@@ -84,27 +66,11 @@ class Alive extends Cell {
 
 const tissue = new CALayer(Alive)
 
-const chemo = new CALayer(class extends Cell {
-    init() {
-        this.value = 0
-        this.delta = 0
-        // if(this.x > 50 && this.x < 100 && this.y > 50 && this.y < 100) {
-        //     this.value = 1000
-        // }
-        // if(this.x==50 && this.y==50) {
-        //     this.value = 1000
-        // }
-    }
-    getColor() {
-        return gradient([255, 255, 102], [153, 0, 51], this.value / params.chemoMax)
-    }
-    add(value) {
-        this.delta += value
-    }
+const chemo = new CALayer(class extends simpleValueCell([153, 0, 51], [255, 255, 102], params.chemoMax) {
     update() {
         let basePortion = 0;
 
-        const diag = this.getDiagonalNeighbours()
+        const diag = this.M()
         const str8 = this.getVonNeumannNeighbours()
         for(const n of diag) {
             if(this.value > n.value)
@@ -149,21 +115,7 @@ const chemo = new CALayer(class extends Cell {
     }
 })
 
-const patho = new CALayer(class extends Cell {
-    init() {
-        this.value = 0
-        this.delta = 0
-
-        // if(this.x > 50 && this.x < 100 && this.y > 50 && this.y < 100) {
-        //     this.value = 1000
-        // }
-    }
-    getColor() {
-        return gradient([255, 255, 255], [255, 0, 0], this.value / params.pathoMax)
-    }
-    add(value) {
-        this.delta += value
-    }
+const patho = new CALayer(class extends simpleValueCell([255, 255, 255], [255, 0, 0], params.pathoMax) {
     update() {
         if(Math.random() < params.pathoProb &&
                 this.value < params.pathoMax)
@@ -264,29 +216,11 @@ class NaturalKiller extends Agent {
     }
 }
 
-const helper = new CALayer(class extends Cell {
-    update() {
-        const c = this.on(chemo);
-        const p = this.on(patho);
-        [c, p].forEach(e => {
-            e.value += e.delta
-            e.delta = 0
-        })
-        c.value = clamp(c.value, 0, params.chemoMax)
-        p.value = clamp(p.value, 0, params.pathoMax)
-    }
-
-    getColor() {
-        return [0,0,0,0]
-    }
-})
-
-
 const mast = new ABLayer()
 const macro = new ABLayer()
 const killer = new ABLayer()
 
-new Simulation(100, 100, [patho, chemo, tissue, mast, macro, killer, helper], {scale: 8,
+new Simulation(100, 100, [patho, chemo, tissue, mast, macro, killer], {scale: 8,
 init: sim => {
     mast.spreadRandom(Mast, 100)
     macro.spreadRandom(Macrophage, 100)

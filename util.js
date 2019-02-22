@@ -54,11 +54,22 @@ function clamp(value, min, max) {
     return value < min ? min : value > max ? max : value; 
 }
 
+
+function gradient(c1, c2, n) {
+    n = clamp(n, 0, 1)
+    return [
+        c1[0] + (c2[0] - c1[0]) * n,
+        c1[1] + (c2[1] - c1[1]) * n,
+        c1[2] + (c2[2] - c1[2]) * n
+    ]
+}
+
 export {
     random,
     createCanvas,
     createButton,
     map,
     clamp,
-    hueToRgb
+    hueToRgb,
+    gradient
 }

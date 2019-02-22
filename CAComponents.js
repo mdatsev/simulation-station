@@ -1,5 +1,5 @@
 import { Layer } from './CommonComponents.js'
-import { random } from './util.js'
+import { random, clamp, gradient } from './util.js'
 
 
 
@@ -205,8 +205,33 @@ class CALayer extends Layer {
     }
 }
 
+
+function simpleValueCell(minColor, maxColor, max, min = 0) {
+    return class SimpleValueCell extends Cell {
+        init() {
+            this.value = 0
+            this.delta = 0
+        }
+        add(value) {
+            this.value += value
+        }
+        getColor() {
+            return gradient(minColor, maxColor, this.value / max)
+        }
+        *updateParallel() { 
+            this.update()
+            yield
+            this.value += this.delta
+            this.delta = 0
+            this.value = clamp(this.value, min, max)
+        }
+    }
+}
+
 export {
     CALayer,
     Cell,
-    EmptyCell
+    EmptyCell,
+    gradient,
+    simpleValueCell
 }
