@@ -68,6 +68,15 @@ function chance(p) {
     return Math.random() < p
 }
 
+function weightedChooseDo(...items) {
+    let r = Math.random() * items.reduce((a, [p, _]) => a + p, 0)
+    for (const [p, f] of items) {
+        if (r < p)
+            f()
+        r -= p;
+    }
+}
+
 export {
     random,
     createCanvas,
@@ -76,5 +85,6 @@ export {
     clamp,
     hueToRgb,
     gradient,
-    chance
+    chance,
+    weightedChooseDo
 }
