@@ -222,8 +222,18 @@ class CALayer extends Layer {
 }
 
 
-function simpleValueCell(minColor, maxColor, max, min = 0) {
-    return class SimpleValueCell extends Cell {
+function makeCell(options) {
+    const {
+        minColor = [0, 0, 0],
+        maxColor = [255, 255, 255],
+        minValue = 0,
+        maxValue = 1,
+        diffuse = false,
+        decay = 0,
+        decayBase = 0
+    } = options
+
+    return class extends Cell {
         init() {
             this.value = 0
             this.delta = 0
@@ -231,15 +241,46 @@ function simpleValueCell(minColor, maxColor, max, min = 0) {
         add(value) {
             this.delta += value
         }
+        mult(value) {
+            this.add(this.value * (value - 1))
+        }
         getColor() {
-            return gradient(minColor, maxColor, this.value / max)
+            return gradient(minColor, maxColor, (this.value - minValue) / maxValue)
+        }
+        _diffuse() {
+            let basePortion = 0;
+            const neighs = this.getMooreNeighbours()
+            const dist = this.getMooreDistances()
+            for(let i = 0; i < neighs.length; i++) {
+                if(this > neighs[i])
+                    basePortion += dist[i]
+            }
+            for(let i = 0; i < neighs.length; i++) {
+                if(this > neighs[i])
+                {                
+                    const amount = (this - neighs[i]) / basePortion / dist[i];
+                    neighs[i].curr.add(amount);
+                    this.add(-amount);
+                }
+            }
+        }
+        _decay() {
+            if(this > decayBase)
+                this.add(-(this * decay + decayBase))
         }
         *updateParallel() { 
             this.update()
             yield
+            if(diffuse)
+                this._diffuse()
+            if(decay)
+                this._decay()
             this.value += this.delta
             this.delta = 0
-            this.value = clamp(this.value, min, max)
+            this.value = clamp(this.value, minValue, maxValue)
+        }
+        valueOf() {
+            return this.value
         }
     }
 }
@@ -249,5 +290,5 @@ export {
     Cell,
     EmptyCell,
     gradient,
-    simpleValueCell
+    makeCell
 }

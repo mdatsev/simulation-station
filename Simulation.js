@@ -1,6 +1,6 @@
 import FrameCounter from './FrameCounter.js'
 import { Layer } from './CommonComponents.js'
-import { CALayer, Cell, EmptyCell, simpleValueCell } from './CAComponents.js'
+import { CALayer, Cell, EmptyCell, makeCell } from './CAComponents.js'
 import { ABLayer, Agent } from './ABComponents.js'
 import { createCanvas } from './util.js'
 import { WebGLRenderer } from './WebGLRenderer.js'
@@ -89,5 +89,5 @@ export {
     Agent,
     Cell,
     EmptyCell,
-    simpleValueCell
+    makeCell
 }
