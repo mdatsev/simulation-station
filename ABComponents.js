@@ -100,6 +100,16 @@ class ABLayer extends Layer {
     }
 }
 
+function getXY([first, ...args]) {
+    if(typeof first === 'number')
+        return [first, ...args]
+    if(Array.isArray(first))
+        return [...first, ...args]
+    if('x' in first)
+        return [first.x, first.y, ...args]
+    throw new Error('unsuppored coord args', first, args)
+}
+
 class Agent {
     constructor(x = 0, y = 0, ab = null) {
         this.x = x
@@ -107,9 +117,19 @@ class Agent {
         this.ab = ab
         this._ssinternal = {}
     }
-    move(x, y) {
-        this.x += x
-        this.y += y
+
+    move(...args) {
+        const [x, y] = getXY(args)
+        this.moveTo(this.x + x, this.y + y)
+    }
+    moveToward(...args) {
+        const [x, y, fraction] = getXY(args)
+        this.move((x - this.x) * fraction, (y - this.y) * fraction)
+    }
+    moveTo(...args) {
+        const [x, y] = getXY(args)
+        this.x = x
+        this.y = y
         const w = this.ab.width
         const h = this.ab.height
         if(this.x >= w) this.x = this.x-w
@@ -117,6 +137,7 @@ class Agent {
         if(this.y >= h) this.y = this.y-h
         if(this.y < 0) this.y = h+this.y
     }
+
     spawn(agent, x = this.x, y = this.y) {
         this.ab.spawn(agent, x, y)
     }
