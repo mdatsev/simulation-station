@@ -302,8 +302,7 @@ class WebGLRenderer {
             false,
             this.projectionMatrix);        
 
-        for(const [agents, type] of layer.getAgentsPartitioned()) {
-            const tpath = type.getTexture();
+        for(const [agents, tpath] of layer.getAgentsPartitionedByTexure()) {
             const texture = this.textures[tpath] || this.loadTexture(tpath)
             gl.bindVertexArray(this.VAOInstanced)
             gl.activeTexture(gl.TEXTURE0);
@@ -312,12 +311,7 @@ class WebGLRenderer {
 
             let buf = []
             for(const agent of agents) {
-                let t = mat4.create()
-                mat4.fromTranslation(t, [agent.x, agent.y, 0])
-                let s = mat4.create()
-                mat4.fromScaling(s, [1, 1, 0])
-                mat4.mul(t, t, s)
-                buf.push(...t)
+                buf.push(...agent.transform)
             }
             gl.bindBuffer(gl.ARRAY_BUFFER, this.agentsBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(buf), gl.DYNAMIC_DRAW);
