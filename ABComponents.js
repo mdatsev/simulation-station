@@ -49,8 +49,8 @@ class ABLayer extends Layer {
 
     spreadRandom(type, n, startx = this.origin.x, starty = this.origin.y, endx = this.width * this.scale, endy = this.height * this.scale) {
         for(let i = 0; i < n; i++) {
-            const x = random(startx, endx),
-            y = random(starty, endy);
+            const x = random(startx, endx)
+            const y = random(starty, endy)
             const agent = new (type)(x, y, this)
             agent.init()
             this.agents.push(agent)
@@ -71,9 +71,9 @@ class ABLayer extends Layer {
 
     prepareForUpdate() {
         this.old_agents = this.agents.copy()
-        this.qtree = new QuadTree(new Rectangle(0, 0, this.width, this.height), 5000)
+        this.qtree = new QuadTree(new Rectangle(200, 200, 1, 1), 4)
         for(const a of this.old_agents) {
-            this.qtree.insert(a)
+            this.qtree = this.qtree.insert(a)
         }
     }
 
@@ -161,7 +161,7 @@ class Agent {
         return this.ab.neighsWithin(this, dist, type)
     }
     on(layer) {
-        return layer.cells[Math.floor(this.x)][Math.floor(this.y)] //todo adjust for scale
+        return layer.cells.get(Math.floor(this.x), Math.floor(this.y)) //todo adjust for scale
     }
     update() { }
     init() { }

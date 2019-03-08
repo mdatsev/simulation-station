@@ -266,21 +266,19 @@ class WebGLRenderer {
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
 
 
-        for (let i = 0; i < this.width; i++) {
-            for (let j = 0; j < this.height; j++) {
-                const cell = layer.cells[i][j]
-                const col = cell.getColor()
-                const pos = (j * this.width + i) * 4
-                if(!col)
-                {
-                    this.image[pos + 3] = 0
-                    continue
-                }
-                this.image[pos + 0] = col[0];
-                this.image[pos + 1] = col[1];
-                this.image[pos + 2] = col[2];
-                this.image[pos + 3] = col.length == 3 ? 255 : col[3];
+        for(const cell of layer.cells)
+        {
+            const col = cell.getColor()
+            const pos = (cell.y * this.width + cell.x) * 4
+            if(!col)
+            {
+                this.image[pos + 3] = 0
+                continue
             }
+            this.image[pos + 0] = col[0];
+            this.image[pos + 1] = col[1];
+            this.image[pos + 2] = col[2];
+            this.image[pos + 3] = col.length == 3 ? 255 : col[3];
         }
 
         gl.texSubImage2D(gl.TEXTURE_2D, 0,

@@ -146,8 +146,18 @@ class QuadTree {
         return list;
     }
 
+    *entries() {
+        yield* this.agents.values()
+        if(!this.divided)
+            return
+        yield* this.ne.entries()
+        yield* this.nw.entries()
+        yield* this.sw.entries()
+        yield* this.se.entries()
+    }
+
     [Symbol.iterator]() {
-        return this.agents.values()
+        return this.entries()
     }
 }
 
@@ -178,4 +188,62 @@ class AgentContainer {
     }
 }
 
-export {AgentContainer, QuadTree, Rectangle};
+class CellContainer {
+    constructor(arg1, h, cellTypes, sim) {
+        if(arg1 instanceof CellContainer) {
+            this.w = arg1.w
+            this.h = arg1.h
+            this.cells = []
+            for(let x = 0; x < this.w; x++) {
+                this.cells.push([])
+                for(let y = 0; y < this.h; y++) {
+                    const curr = arg1.cells[x][y]
+                    const old = Object.assign(new (arg1.cells[x][y].constructor)(), curr)
+                    old.curr = curr
+                    this.cells[x].push(old)
+                }
+            }
+        } else {
+            const w = arg1
+            this.w = w
+            this.h = h
+            this.cells = []
+            if(cellTypes instanceof Function) {
+                cellTypes = [cellTypes]
+            }
+            for(let x = 0; x < w; x++) {
+                this.cells.push([])
+                for(let y = 0; y < h; y++) {
+                    const cellType = cellTypes[0]//random(cellTypes)//TODO
+                    const cell = new (cellType)(x, y, sim)
+                    cell.init()
+                    // if(randomizeEach) //TODO
+                    //     cell.random()
+                    this.cells[x].push(cell)
+                }
+            }
+        }
+    }
+
+    copy() {
+        return new CellContainer(this)
+    }
+
+    get(x, y) {
+        return this.cells[x][y]
+    }
+
+    set(x, y, cell) {
+        return this.cells[x][y] = cell
+    }
+
+    *[Symbol.iterator]() {
+        for(let i = 0; i < this.w; i++) {
+            for(let j = 0; j < this.h; j++) {
+                yield this.cells[i][j]
+            }
+        }
+    }
+}
+
+export {AgentContainer, QuadTree, Rectangle, CellContainer};

@@ -1,5 +1,6 @@
 import { Layer } from './CommonComponents.js'
 import { random, clamp, gradient } from './util.js'
+import { CellContainer } from './AgentContainer.js'
 
 const VON_NEUMANN_NEIGHS = [
     [ 1,  0],
@@ -66,7 +67,7 @@ class Cell {
     }
 
     on(layer) {
-        return layer.cells[this.x][this.y]
+        return layer.cells.get(this.x, this.y)
     }
 
     // impl
@@ -104,9 +105,8 @@ class CALayer extends Layer {
         this.nyCells = nyCells
         this.cellxSize = 1
         this.cellySize = 1
-        this.cells = []
+        this.cells = new CellContainer(nxCells, nyCells, this.cellTypes, this)
         this.running = false
-        this.spreadRandomCells(this.cellTypes)
         this.startLoop()
     }
 
@@ -125,7 +125,7 @@ class CALayer extends Layer {
     forEachCell(f, xFrom = 0, yFrom = 0, xTo = this.nxCells, yTo = this.nyCells, randomizeEach) {	
         for(let x = xFrom; x < xTo; x++) {	
             for(let y = yFrom; y < yTo; y++) {	
-                f(this.cells[x][y])	
+                f(this.cells.get(x, y))	
             }
         }
     }   
@@ -133,7 +133,7 @@ class CALayer extends Layer {
     onClick(x, y) {
         const cell_x = Math.floor(x / this.cellxSize),
               cell_y = Math.floor(y / this.cellySize)
-        const targetCell = this.cells[cell_x][cell_y]
+        const targetCell = this.cells.get(cell_x, cell_y)
         targetCell.onClick()
     }
 
@@ -143,27 +143,13 @@ class CALayer extends Layer {
     }
 
     spreadRandomCells(cellTypes, randomizeEach = true) {
-        if(cellTypes instanceof Function) {
-            cellTypes = [cellTypes]
-        }
-
-        for(let x = 0; x < this.nxCells; x++) {
-            this.cells.push([])
-            for(let y = 0; y < this.nyCells; y++) {
-                const cellType = random(cellTypes)
-                const cell = new (cellType)(x, y, this)
-                cell.init()
-                if(randomizeEach)
-                    cell.random()
-                this.cells[x].push(cell)
-            }
-        }
+        // TODO
     }
 
     *getCellsIterator() {
         for(let x = 0; x < this.nxCells; x++) {
             for(let y = 0; y < this.nyCells; y++) {
-                yield this.cells[x][y]
+                yield this.cells.get(x, y)
             }
         }
     }
@@ -178,20 +164,11 @@ class CALayer extends Layer {
         const mod = (n, M) => ((n % M) + M) % M
         if(!cells)
             debugger
-        return cells[mod(x, this.nxCells)][mod(y, this.nyCells)]
+        return cells.get(mod(x, this.nxCells), mod(y, this.nyCells))
     }
 
     prepareForUpdate() {
-        this.old_cells = []
-        for(let x = 0; x < this.nxCells; x++) {
-            this.old_cells.push([])
-            for(let y = 0; y < this.nyCells; y++) {
-                const curr = this.cells[x][y]
-                const old = Object.assign(new (this.cells[x][y].constructor)(), curr)
-                old.curr = curr
-                this.old_cells[x].push(old)
-            }
-        }
+        this.old_cells = this.cells.copy()
     }
 
     tick() {
@@ -215,7 +192,7 @@ class CALayer extends Layer {
         for(const cell of this.getCellsIterator()) {
             const new_type = cell._ssinternal.become_cell
             if(new_type) {
-                (this.cells[cell.x][cell.y] = new (new_type)(cell.x, cell.y, this)).init()
+                this.set(cell.x, cell.y, new (new_type)(cell.x, cell.y, this)).init()
             }
         }
     }
