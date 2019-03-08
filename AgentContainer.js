@@ -230,7 +230,8 @@ class CellContainer {
     }
 
     get(x, y) {
-        return this.cells[x][y]
+        const mod = (n, M) => ((n % M) + M) % M
+        return this.cells[mod(x, this.w)][mod(y, this.h)]
     }
 
     set(x, y, cell) {
@@ -246,4 +247,85 @@ class CellContainer {
     }
 }
 
-export {AgentContainer, QuadTree, Rectangle, CellContainer};
+class InfiniteCellContainer {
+    constructor(arg1, h, emptyCell, sim) {
+        if(arg1 instanceof InfiniteCellContainer) {
+            this.sim = arg1.sim
+            this.emptyCell = arg1.emptyCell
+            this.cells = []
+            for(const cell of arg1.cells) {
+                const old = Object.assign(new (cell.constructor)(), cell)
+                old.curr = cell
+                this.cells.push(old)
+            }
+        } else {
+            this.sim = sim
+            this.emptyCell = emptyCell
+            this.cells = []
+        }
+    }
+
+    copy() {
+        return new InfiniteCellContainer(this)
+    }
+
+    get(x, y) {
+        for(const cell of this.cells) {
+            if(cell.x == x && cell.y == y) {
+                return cell
+            }
+        }
+        return this.spawnEmpty(x, y, false)
+    }
+
+    set(x, y, cell) {
+        for(let i = 0; i < this.cells.length; i++) {
+            if(this.cells[i].x == x && this.cells[i].y == y) {
+                return this.cells[i] = cell
+            }
+        }
+        this.cells.push(cell)
+        return cell
+    }
+
+    spawnEmpty(x, y, check = true) {
+        if(check)
+            for(const cell of this.cells)
+                if(cell.x == x && cell.y == y)
+                    return
+        const new_cell = new this.emptyCell(x, y, this.sim)
+        new_cell.init()
+        this.cells.push(new_cell)
+        return new_cell
+    }
+
+    registerCellUpdate(cell) {
+        if(cell._ssinternal.generatedNeighs)
+            return
+        const {x, y} = cell
+        this.spawnEmpty(x+1, y)
+        this.spawnEmpty(x, y+1)
+        this.spawnEmpty(x-1, y)
+        this.spawnEmpty(x, y-1)
+        this.spawnEmpty(x+1, y+1)
+        this.spawnEmpty(x-1, y-1)
+        this.spawnEmpty(x+1, y-1)
+        this.spawnEmpty(x-1, y+1)
+        cell._ssinternal.generatedNeighs = true
+    }
+
+    update() {
+        const cp = [...this.cells]
+        for(const cell of cp) {
+            //TODO check update value
+            this.registerCellUpdate(cell)
+        }
+    }
+
+    *[Symbol.iterator]() {
+        for(const cell of this.cells)
+            yield cell
+    }
+}
+
+export {AgentContainer, QuadTree, Rectangle, CellContainer, InfiniteCellContainer};

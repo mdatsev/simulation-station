@@ -1,6 +1,6 @@
 import { Layer } from './CommonComponents.js'
 import { random, clamp, gradient } from './util.js'
-import { CellContainer } from './AgentContainer.js'
+import { CellContainer, InfiniteCellContainer } from './AgentContainer.js'
 
 const VON_NEUMANN_NEIGHS = [
     [ 1,  0],
@@ -23,11 +23,11 @@ const MOORE_NEIGHS = [
 
 
 class Cell {
-    constructor(x, y, sim) {
+    constructor(x, y, layer) {
         this.x = x
         this.y = y
         this._ssinternal = {}
-        this._ssinternal.sim = sim
+        this._ssinternal.layer = layer
     }
 
     become(cell_type) {
@@ -38,10 +38,9 @@ class Cell {
         return MOORE_NEIGHS.map(c => Math.sqrt(c[0] * c[0] + c[1] * c[1]))
     }
 
-    getNeighs(coords, layer = this._ssinternal.sim) {
+    getNeighs(coords, layer = this._ssinternal.layer) {
         return coords
-            .map(([a, b]) => [this.x + a, this.y + b])
-            .map(p => layer.cells_safe(layer.old_cells, ...p))
+            .map(([a, b]) => layer.old_cells.get(this.x + a, this.y + b))
     }
 
     getVonNeumannNeighbours(layer){
@@ -56,10 +55,10 @@ class Cell {
         return this.getNeighs(MOORE_NEIGHS, layer)
     }
 
-    getRandomNeigh(layer = this._ssinternal.sim){
+    getRandomNeigh(layer = this._ssinternal.layer){
         const x = this.x
         const y = this.y
-        return layer.cells_safe(layer.cells, ...random([
+        return layer.cells.get(...random([
             [x + 1, y    ],
             [x,     y + 1],
             [x - 1, y    ],
@@ -105,21 +104,8 @@ class CALayer extends Layer {
         this.nyCells = nyCells
         this.cellxSize = 1
         this.cellySize = 1
-        this.cells = new CellContainer(nxCells, nyCells, this.cellTypes, this)
+        this.cells = new InfiniteCellContainer(nxCells, nyCells, this.cellTypes, this)
         this.running = false
-        this.startLoop()
-    }
-
-    pause() {
-        this.running = false
-    }
-
-    resume() {
-        this.running = true
-    }
-
-    run() {
-        this.resume()
     }
 
     forEachCell(f, xFrom = 0, yFrom = 0, xTo = this.nxCells, yTo = this.nyCells, randomizeEach) {	
@@ -128,7 +114,8 @@ class CALayer extends Layer {
                 f(this.cells.get(x, y))	
             }
         }
-    }   
+    }
+
 
     onClick(x, y) {
         const cell_x = Math.floor(x / this.cellxSize),
@@ -142,29 +129,22 @@ class CALayer extends Layer {
         this.run()
     }
 
-    spreadRandomCells(cellTypes, randomizeEach = true) {
-        // TODO
-    }
-
-    *getCellsIterator() {
-        for(let x = 0; x < this.nxCells; x++) {
-            for(let y = 0; y < this.nyCells; y++) {
-                yield this.cells.get(x, y)
+    spreadRandomCells(cellTypes, xFrom = 0, yFrom = 0, xTo = this.nxCells, yTo = this.nyCells, randomizeEach = true) {
+        for(let x = xFrom; x < xTo; x++) {	
+            for(let y = yFrom; y < yTo; y++) {
+                const new_cell = new cellTypes(x, y, this)
+                new_cell.init()
+                if(randomizeEach)
+                    new_cell.random()
+                this.cells.set(x, y, new_cell)
             }
         }
     }
 
-    startLoop() {
-        if(this.running)
-            this.tick()
-        requestAnimationFrame(() => this.startLoop())
-    }
-
-    cells_safe(cells, x, y) {
-        const mod = (n, M) => ((n % M) + M) % M
-        if(!cells)
-            debugger
-        return cells.get(mod(x, this.nxCells), mod(y, this.nyCells))
+    *getCellsIterator() {
+        for(const cell of this.cells) {
+            yield cell
+        }
     }
 
     prepareForUpdate() {
@@ -175,17 +155,20 @@ class CALayer extends Layer {
         const generators = []
         for(const cell of this.getCellsIterator()) {
             if(cell.updateParallel != Cell.prototype.updateParallel)
-                generators.push(cell.updateParallel())
+                generators[generators.push(cell.updateParallel()) - 1].cell = cell
             else
-                generators.push({next:function(){
+                generators[generators.push({next:function(){
                     cell.update(cell.getMooreNeighbours())
                     return {done:true}
-                }})
+                }}) - 1].cell = cell
         }
         for(let updated = false; !updated; ) {
             updated = true
             for(const g of generators) {
-                const {done} = g.next()
+                const {value, done} = g.next()
+                if(done && value) {
+                    cell._ssinternal.update_status = value
+                }
                 updated &= done
             }
         }
@@ -194,6 +177,10 @@ class CALayer extends Layer {
             if(new_type) {
                 this.set(cell.x, cell.y, new (new_type)(cell.x, cell.y, this)).init()
             }
+        }
+        if(this.cells.update)
+        {
+            this.cells.update()
         }
     }
 }
