@@ -22,9 +22,11 @@ class Simulation {
         let {
             canvas,
             scale,
-            init
+            init,
+            tick
         } = options
         this.initFunction = init
+        this.tickFunction = tick
         this.layers = layers = layers instanceof Layer ? [layers] : layers
         this.xsize = xsize
         this.ysize = ysize
@@ -68,6 +70,8 @@ class Simulation {
         for(const layer of this.layers) {
             layer.tick()
         }
+        if(this.tickFunction)
+            this.tickFunction(this)
         this.renderer.draw()
         this.frameCounter.update()
         // console.log(this.frameCounter.getFramerate())
