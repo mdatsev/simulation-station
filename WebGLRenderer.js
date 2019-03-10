@@ -1,7 +1,6 @@
-import glm from './gl-matrix/gl-matrix.js'
-import { CALayer, ABLayer } from './Simulation.js'
-
-const mat4 = glm.mat4
+import { CALayer } from './CAComponents.js'
+import { ABLayer } from './ABComponents.js'
+import * as mat4 from './gl-matrix/mat4';
 
 class WebGLRenderer {
 

@@ -6,8 +6,14 @@ class Point {
 }
 
 class Rectangle {
-    constructor(x, y, w, h) {
-        this.x = x
+    constructor(arg1, y, w, h) {
+        if(arg1 instanceof Rectangle) {
+            this.x = arg1.x
+            this.y = arg1.y
+            this.w = arg1.w
+            this.h = arg1.h
+        }
+        this.x = arg1
         this.y = y
         this.w = w
         this.h = h
@@ -18,6 +24,10 @@ class Rectangle {
             p.y >= this.y &&
             p.x < this.x + this.w &&
             p.y < this.y + this.h
+    }
+
+    copy() {
+        return new Rectangle(this)
     }
 }
 
@@ -234,8 +244,8 @@ class CellContainer {
         return this.cells[mod(x, this.w)][mod(y, this.h)]
     }
 
-    set(x, y, cell) {
-        return this.cells[x][y] = cell
+    set(cell) {
+        return this.cells[cell.x][cell.y] = cell
     }
 
     *[Symbol.iterator]() {
@@ -247,22 +257,30 @@ class CellContainer {
     }
 }
 
+const cellCoordToId = ({x, y}) => `${x},${y}`
+
 class InfiniteCellContainer {
     constructor(arg1, h, emptyCell, sim) {
         if(arg1 instanceof InfiniteCellContainer) {
+            this.boundary = arg1.boundary
             this.sim = arg1.sim
             this.emptyCell = arg1.emptyCell
-            this.cells = []
-            for(const cell of arg1.cells) {
+            this.cells = {}
+            for(const [id, cell] of Object.entries(arg1.cells)) {
                 const old = Object.assign(new (cell.constructor)(), cell)
                 old.curr = cell
-                this.cells.push(old)
+                this.cells[id] = old
             }
         } else {
             this.sim = sim
             this.emptyCell = emptyCell
-            this.cells = []
+            this.cells = {}
+            this.boundary = null
         }
+    }
+
+    getExtent() {
+        return this.boundary
     }
 
     copy() {
@@ -270,32 +288,33 @@ class InfiniteCellContainer {
     }
 
     get(x, y) {
-        for(const cell of this.cells) {
-            if(cell.x == x && cell.y == y) {
-                return cell
-            }
-        }
-        return this.spawnEmpty(x, y, false)
+        return this.cells[cellCoordToId({x, y})] || this.spawnEmpty(x, y)
     }
 
-    set(x, y, cell) {
-        for(let i = 0; i < this.cells.length; i++) {
-            if(this.cells[i].x == x && this.cells[i].y == y) {
-                return this.cells[i] = cell
-            }
+    set(c) {
+        if(!this.boundary) {
+            this.boundary = new Rectangle(c.x, c.y, 1, 1)
         }
-        this.cells.push(cell)
-        return cell
+        const b = this.boundary
+        if(c.x < b.x)
+            b.x = c.x
+        else if(c.x > b.x + b.w)
+            b.h = c.x - b.x + 1
+        if(c.y < b.y)
+            b.y = c.y
+        else if(c.y > b.y + b.h)
+            b.w = c.y - b.y + 1
+        const id = cellCoordToId(c)
+        return this.cells[id] = c
     }
 
     spawnEmpty(x, y, check = true) {
-        if(check)
-            for(const cell of this.cells)
-                if(cell.x == x && cell.y == y)
-                    return
+        const id = cellCoordToId({x, y})
+        if(this.cells[id])
+            return
         const new_cell = new this.emptyCell(x, y, this.sim)
         new_cell.init()
-        this.cells.push(new_cell)
+        this.set(new_cell)
         return new_cell
     }
 
@@ -315,16 +334,14 @@ class InfiniteCellContainer {
     }
 
     update() {
-        const cp = [...this.cells]
-        for(const cell of cp) {
-            //TODO check update value
+        const cp = Object.assign({}, this.cells);
+        for(const cell of Object.values(cp)) {
             this.registerCellUpdate(cell)
         }
     }
 
     *[Symbol.iterator]() {
-        for(const cell of this.cells)
-            yield cell
+        yield* Object.values(this.cells).values()
     }
 }
 

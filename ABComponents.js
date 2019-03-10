@@ -1,8 +1,7 @@
 import { Layer } from './CommonComponents.js'
 import { random } from './util.js'
 import {AgentContainer, QuadTree, Rectangle} from './AgentContainer.js'
-import glm from './gl-matrix/gl-matrix.js'
-const mat4 = glm.mat4
+import * as mat4 from './gl-matrix/mat4';
 
 
 class ABLayer extends Layer {
@@ -28,12 +27,12 @@ class ABLayer extends Layer {
         //         done.push(types.shift())
         //     }
         // }
-        // for(const agent of this.agents) {
-        //     yield [[agent], agent.constructor.getTexture()]
-        // }
         for(const agent of this.agents) {
-            yield [[agent], agent.getTexture()]
+            yield [[agent], (agent.constructor.getTexture || agent.getTexture).call(agent)]
         }
+        // for(const agent of this.agents) {
+        //     yield [[agent], agent.getTexture()]
+        // }
         // yield [this.agents, './fox.png']
     }
 

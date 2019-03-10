@@ -1,0 +1,24 @@
+{
+  "name": "simulation-station",
+  "version": "1.0.0",
+  "description": "Framework for creating and visualizing simulations",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mdatsev/simulation-station.git"
+  },
+  "author": "mdatsev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mdatsev/simulation-station/issues"
+  },
+  "homepage": "https://github.com/mdatsev/simulation-station#readme",
+  "dependencies": {
+    "rollup": "^1.6.0",
+    "rollup-plugin-node-resolve": "^4.0.1",
+    "rollup-plugin-terser": "^4.0.4"
+  }
+}
