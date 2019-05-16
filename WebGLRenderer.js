@@ -1,6 +1,6 @@
 import { CALayer } from './CAComponents.js'
 import { ABLayer } from './ABComponents.js'
-import * as mat4 from './gl-matrix/mat4';
+import * as mat4 from './gl-matrix/mat4.js';
 
 class WebGLRenderer {
 

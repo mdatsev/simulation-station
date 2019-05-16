@@ -94,8 +94,9 @@ class EmptyCell extends Cell {
 
 class CALayer extends Layer {
 
-    constructor(cellTypes) {
+    constructor(cellTypes, options) {
         super()
+        this.options = options
         this.cellTypes = cellTypes
     }
 
@@ -104,7 +105,7 @@ class CALayer extends Layer {
         this.nyCells = nyCells
         this.cellxSize = 1
         this.cellySize = 1
-        this.cells = new InfiniteCellContainer(nxCells, nyCells, this.cellTypes, this)
+        this.cells = new CellContainer(nxCells, nyCells, this.cellTypes, this)
         this.running = false
     }
 
@@ -136,7 +137,7 @@ class CALayer extends Layer {
                 new_cell.init()
                 if(randomizeEach)
                     new_cell.random()
-                this.cells.set(x, y, new_cell)
+                this.cells.set(new_cell)
             }
         }
     }
@@ -175,7 +176,7 @@ class CALayer extends Layer {
         for(const cell of this.getCellsIterator()) {
             const new_type = cell._ssinternal.become_cell
             if(new_type) {
-                this.set(cell.x, cell.y, new (new_type)(cell.x, cell.y, this)).init()
+                this.cells.set(new (new_type)(cell.x, cell.y, this)).init()
             }
         }
         if(this.cells.update)

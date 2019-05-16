@@ -29,11 +29,25 @@ function createTimeControls(sim, parent = document.body) {
     return parent.appendChild(el)
 }
 
+function createPropertySlider(object, property, min, max, step, parent = document.body, value = object[property]) {
+    const input = document.createElement('input')
+    input.type = 'range'
+    input.min = min
+    input.max = max
+    input.step = step
+    input.value = object[property];
+    input.addEventListener('input', ev => {
+        object[property] = input.value
+    }) 
+    return parent.appendChild(input)
+}
+
 function createPropertyControl(object, property, parent = document.body, value = object[property]) {
     const input = document.createElement('input')
     switch(value.constructor) {
         case String: input.type = 'text'; break;
         case Number: input.type = 'number'; break;
+        case Boolean: input.type = 'checkbox'; break;
     }
     input.value = object[property];
     input.addEventListener('input', ev => {

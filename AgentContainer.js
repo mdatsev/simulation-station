@@ -1,3 +1,5 @@
+import { random } from './util.js'
+
 class Point {
     constructor(x, y) {
         this.x = x
@@ -224,7 +226,7 @@ class CellContainer {
             for(let x = 0; x < w; x++) {
                 this.cells.push([])
                 for(let y = 0; y < h; y++) {
-                    const cellType = cellTypes[0]//random(cellTypes)//TODO
+                    const cellType = random(cellTypes)//TODO
                     const cell = new (cellType)(x, y, sim)
                     cell.init()
                     // if(randomizeEach) //TODO

@@ -2,7 +2,7 @@ import {CellularAutomata, Cell} from '../CellularAutomata.js'
 
 class Neuron extends Cell {
 
-    random() {
+    init() {
         this.state = Math.random() > .5 ? 'on' : 'off'
     }
 

@@ -1,7 +1,7 @@
 import { Layer } from './CommonComponents.js'
 import { random } from './util.js'
 import {AgentContainer, QuadTree, Rectangle} from './AgentContainer.js'
-import * as mat4 from './gl-matrix/mat4';
+import * as mat4 from './gl-matrix/mat4.js';
 
 
 class ABLayer extends Layer {

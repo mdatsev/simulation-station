@@ -1,6 +1,4 @@
-import {CALayer, ABLayer, Cell, Agent, Simulation, makeCell} from '../Simulation.js'
-import {createLayerControls, createTimeControls} from '../UI.js'
-import {chance, random, weightedChooseDo} from '../util.js'
+import {CALayer, ABLayer, Cell, Agent, Simulation, makeCell, createLayerControls, createTimeControls, chance, random, weightedChooseDo} from '../dist/simulation-station.esm.js'
 
 const params = {
     pathoMax: 200,
