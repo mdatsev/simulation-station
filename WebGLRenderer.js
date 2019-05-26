@@ -70,18 +70,20 @@ class WebGLRenderer {
         this.uSamplerInstanced = gl.getUniformLocation(shaderProgramInstanced, 'uSampler')
         this.shaderProgramInstanced = shaderProgramInstanced
 
-        const textureCoords = [
-            1.0, 1.0,
-            0.0, 1.0,
-            1.0, 0.0,
-            0.0, 0.0,
-        ];
+        const extension = 100000;
 
         const positions = [
-            width,  height,
-            0,  height,
-            width, 0,
-            0, 0,
+            width+extension,  height+extension,
+            -extension,  height+extension,
+            width+extension, -extension,
+            -extension, -extension,
+        ];
+
+        const textureCoords = [
+            (width+extension)/width, (height+extension)/height,
+            -extension/width, (height+extension)/height,
+            (width+extension)/width, -extension/height,
+            -extension/width, -extension/height,
         ];
 
         const positionsInstanced = [
@@ -143,8 +145,8 @@ class WebGLRenderer {
             this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE,
             new Uint8Array(this.width * this.height * 4));
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.GL_REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.GL_REPEAT);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         this.texture = texture
