@@ -173,18 +173,23 @@ class QuadTree {
     }
 }
 
+const default_key = Symbol('default');
+
 class AgentContainer {
 
-    constructor() {
-        this.agents = []
+    constructor(group_by) {
+        this.agents = {[default_key]:[]}
     }
 
     copy() {
-        const agents_copy = []
-        for(let i = 0; i < this.agents.length; i++) {
-            const agent = Object.assign(new (this.agents[i].constructor)(), this.agents[i])
-            agents_copy.push(agent)
-            agent._ssinternal.original = this.agents[i]
+        const agents_copy = {}
+        for(const [k, v] of Object.entries(agents_copy)) {
+            agents_copy[k] = []
+            for(const a of v) {
+                const agent = Object.assign(new (a.constructor)(), a)
+                agents_copy[k].push(agent)
+                agent._ssinternal.original = a
+            }
         }
         const r = new AgentContainer()
         r.agents = agents_copy
@@ -192,11 +197,24 @@ class AgentContainer {
     }
 
     push(agent) {
-        this.agents.push(agent)
+        const key = agent.constructor.getTexture 
+            ? agent.constructor.getTexture() 
+            : default_key;
+        if(!this.agents[key])
+            this.agents[key] = []
+        this.agents[key].push(agent)
     }
 
-    [Symbol.iterator]() {
-        return this.agents.values()
+    *getPartitioned() {
+        for(const k in this.agents) {
+            yield [this.agents[k], k]
+        } 
+    }
+
+    *[Symbol.iterator]() {
+        for(const k in this.agents) {
+            yield* this.agents[k].values()
+        } 
     }
 }
 

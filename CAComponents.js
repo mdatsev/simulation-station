@@ -40,7 +40,7 @@ class Cell {
 
     getNeighs(coords, layer = this._ssinternal.layer) {
         return coords
-            .map(([a, b]) => layer.old_cells.get(this.x + a, this.y + b))
+            .map(([x, y]) => layer.old_cells.get(this.x + x, this.y + y))
     }
 
     getVonNeumannNeighbours(layer){

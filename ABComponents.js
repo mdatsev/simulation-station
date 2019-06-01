@@ -27,9 +27,10 @@ class ABLayer extends Layer {
         //         done.push(types.shift())
         //     }
         // }
-        for(const agent of this.agents) {
-            yield [[agent], (agent.constructor.getTexture || agent.getTexture).call(agent)]
-        }
+        // for(const agent of this.agents) {
+        //     yield [[agent], (agent.constructor.getTexture || agent.getTexture).call(agent)]
+        // }
+        // yield* this.agents.getPartitioned()
         // for(const agent of this.agents) {
         //     yield [[agent], agent.getTexture()]
         // }
@@ -111,7 +112,6 @@ function getXY([first, ...args]) {
         return [first.x, first.y, ...args]
     throw new Error('unsuppored coord args', first, args)
 }
-  
 
 class Agent {
     constructor(x = 0, y = 0, ab = null) {
@@ -123,6 +123,18 @@ class Agent {
         mat4.identity(this.transform)
         this.scale = 1
     }
+
+
+    torusDifference(x1, y1, x2, y2) {
+        var raw_dx = Math.abs(x2 - x1);
+        var raw_dy = Math.abs(y2 - y1);
+        var dx = (raw_dx < (this.ab.width / 2)) ? raw_dx : this.ab.width - raw_dx;
+        var dy = (raw_dy < (100 / 2)) ? raw_dy : 100 - raw_dy;
+
+        var x = raw_dx > dx ? (x1 > x2 ? this.ab.width - x1 + x2 : x2 - x1 - this.ab.width) : x2 - x1;
+        var y = raw_dy > dy ? (y1 > y2 ? this.ab.height - y1 + y2 : y2 - y1 - this.ab.height) : y2 - y1;
+        return [x, y];
+    } 
     
     move(...args) {
         const [x, y] = getXY(args)
@@ -130,7 +142,8 @@ class Agent {
     }
     moveToward(...args) {
         const [x, y, fraction] = getXY(args)
-        this.move((x - this.x) * fraction, (y - this.y) * fraction)
+        const [dx, dy] = this.torusDifference(this.x, this.y, x, y)
+        this.move(dx * fraction, dy * fraction)
     }
     moveTo(...args) {
         let [x, y] = getXY(args)
@@ -160,7 +173,7 @@ class Agent {
         return this.ab.neighsWithin(this, dist, type)
     }
     on(layer) {
-        return layer.cells.get(Math.floor(this.x), Math.floor(this.y)) //todo adjust for scale
+        return layer.cells.get(Math.floor(this.x+0.5), Math.floor(this.y+0.5)) //todo adjust for scale
     }
     update() { }
     init() { }

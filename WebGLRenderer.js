@@ -70,7 +70,7 @@ class WebGLRenderer {
         this.uSamplerInstanced = gl.getUniformLocation(shaderProgramInstanced, 'uSampler')
         this.shaderProgramInstanced = shaderProgramInstanced
 
-        const extension = 100000;
+        const extension = 0;
 
         const positions = [
             width+extension,  height+extension,
