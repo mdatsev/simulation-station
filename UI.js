@@ -1,5 +1,11 @@
 import {createButton} from './util.js'
 
+let idCounter = 0;
+
+function getUniqueId() {
+    return '__ssid' + idCounter++;
+}
+
 function createCheckboxLabel(callback, text) {
     var cb = document.createElement('input');
     cb.type = 'checkbox';
@@ -17,6 +23,29 @@ function createLayerControls(sim, parent = document.body) {
     return parent.appendChild(el)
 }
 
+function createLayerGroupControl(layers, names, parent = document.body) {
+    const name = getUniqueId()
+    const radios = []
+    const update = () => layers.forEach((l, i) => l.visible = radios[i].checked)
+    const el = document.createElement('div')
+    for(let i = 0; i < layers.length; i++) {
+        let r = document.createElement('input');
+        r.type = 'radio';
+        r.value = i
+        r.name = name;
+        r.id = getUniqueId();
+        document.body.appendChild(r);
+        let l = document.createElement('label');
+        l.htmlFor = r.id
+        l.innerText = names[i]
+        r.addEventListener('click', update)
+        el.appendChild(r)
+        el.appendChild(l)
+        radios.push(r)
+    }
+    return parent.appendChild(el)
+}
+
 function createTimeControls(sim, parent = document.body) {
     
     const el = document.createElement('div')
@@ -29,7 +58,11 @@ function createTimeControls(sim, parent = document.body) {
     return parent.appendChild(el)
 }
 
-function createPropertySlider(object, property, min, max, step, parent = document.body, value = object[property]) {
+function createPropertySlider(object, property, min, max, step, value = object[property], parent = document.body) {
+    if(value !== undefined) {
+        object[property] = value
+    }
+
     const input = document.createElement('input')
     input.type = 'range'
     input.min = min
@@ -59,5 +92,7 @@ function createPropertyControl(object, property, parent = document.body, value =
 export {
     createTimeControls,
     createLayerControls,
-    createPropertyControl
+    createPropertyControl,
+    createPropertySlider,
+    createLayerGroupControl
 }
