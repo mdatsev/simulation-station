@@ -5,8 +5,8 @@ import * as mat4 from './gl-matrix/mat4.js';
 
 
 class ABLayer extends Layer {
-    constructor() {
-        super()
+    constructor(options) {
+        super(options)
         this.init()
     }
 
@@ -27,9 +27,9 @@ class ABLayer extends Layer {
         //         done.push(types.shift())
         //     }
         // }
-        // for(const agent of this.agents) {
-        //     yield [[agent], (agent.constructor.getTexture || agent.getTexture).call(agent)]
-        // }
+        for(const agent of this.agents) {
+            yield [[agent], (agent.constructor.getTexture || agent.getTexture).call(agent)]
+        }
         // yield* this.agents.getPartitioned()
         // for(const agent of this.agents) {
         //     yield [[agent], agent.getTexture()]
@@ -61,7 +61,7 @@ class ABLayer extends Layer {
         this.toSpawn.push({agent, x, y})
     }
 
-    destroy(agent) { // TODO
+    destroy(agent) {
         for(let i = 0; i < this.agents.length; i++) {
             if(this.agents[i]._ssinternal.original == agent) {
                 this.toDestroy.push(i)
@@ -93,7 +93,7 @@ class ABLayer extends Layer {
         // this.toDestroy = [...new Set(this.toDestroy)]
         // this.toDestroy.sort((a, b) => b - a)
         // for(const i of this.toDestroy)
-        //     this.agents.splice(i, 1) //TODO
+        //     this.agents.splice(i, 1)
         this.toDestroy = []
     }
 
@@ -173,7 +173,7 @@ class Agent {
         return this.ab.neighsWithin(this, dist, type)
     }
     on(layer) {
-        return layer.cells.get(Math.floor(this.x+0.5), Math.floor(this.y+0.5)) //todo adjust for scale
+        return layer.cells.get(Math.floor(this.x+0.5), Math.floor(this.y+0.5))
     }
     update() { }
     init() { }

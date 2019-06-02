@@ -173,17 +173,16 @@ class QuadTree {
     }
 }
 
-const default_key = Symbol('default');
-
 class AgentContainer {
 
-    constructor(group_by) {
-        this.agents = {[default_key]:[]}
+    constructor() {
+        this.agents = {}
+        this.ungrouped = []
     }
 
     copy() {
         const agents_copy = {}
-        for(const [k, v] of Object.entries(agents_copy)) {
+        for(const [k, v] of Object.entries(this.agents)) {
             agents_copy[k] = []
             for(const a of v) {
                 const agent = Object.assign(new (a.constructor)(), a)
@@ -191,30 +190,44 @@ class AgentContainer {
                 agent._ssinternal.original = a
             }
         }
+        const ungrouped_copy = []
+        for(const a of this.ungrouped) {
+            const agent = Object.assign(new (a.constructor)(), a)
+            ungrouped_copy.push(agent)
+            agent._ssinternal.original = a
+        }
         const r = new AgentContainer()
         r.agents = agents_copy
+        r.ungrouped = ungrouped_copy
         return r
     }
 
     push(agent) {
-        const key = agent.constructor.getTexture 
-            ? agent.constructor.getTexture() 
-            : default_key;
-        if(!this.agents[key])
-            this.agents[key] = []
-        this.agents[key].push(agent)
+        if(agent.constructor.getTexture)
+        {   
+            const key = agent.constructor.getTexture()
+            if(!this.agents[key])
+                this.agents[key] = []
+            this.agents[key].push(agent)
+        } else {
+            this.ungrouped.push(agent)
+        }
     }
 
     *getPartitioned() {
         for(const k in this.agents) {
             yield [this.agents[k], k]
-        } 
+        }
+        for(const a in this.ungrouped) {
+            yield [[a], a.getTexture()]
+        }
     }
 
     *[Symbol.iterator]() {
         for(const k in this.agents) {
             yield* this.agents[k].values()
-        } 
+        }
+        yield* this.ungrouped.values()
     }
 }
 
@@ -244,10 +257,10 @@ class CellContainer {
             for(let x = 0; x < w; x++) {
                 this.cells.push([])
                 for(let y = 0; y < h; y++) {
-                    const cellType = random(cellTypes)//TODO
+                    const cellType = random(cellTypes)
                     const cell = new (cellType)(x, y, sim)
                     cell.init()
-                    // if(randomizeEach) //TODO
+                    // if(randomizeEach)
                     //     cell.random()
                     this.cells[x].push(cell)
                 }
