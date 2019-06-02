@@ -2,7 +2,7 @@ import {simplex2d} from '../noisejs/noise.js'
 
 import {Cell, CALayer, Simulation} from '../Simulation.js'
 
-import {createLayerControls} from '../UI.js'
+import {createPropertySlider} from '../UI.js'
 
 function terrain(x, y, noise, scale) {
     x /= scale
@@ -17,8 +17,8 @@ function terrain(x, y, noise, scale) {
 
 class Terrain extends Cell {
     init() {
-        const v = this.height = Math.floor(terrain(this.x, this.y, simplex2d, 200) * 255)
-        this.color = [v, v, v]
+        const v = this.height = terrain(this.x, this.y, simplex2d, 200)
+        this.color = [v*110, v*255, 0]
         this.burning = 0
     }
 
@@ -36,16 +36,14 @@ const terrainLayer = new CALayer(Terrain)
 class Fire extends Cell {
 
     init() {
-        this.burning = false
-        this.burned = false
         this.counter = 0
     }
 
     getColor() {
         if(this.burning)
-            return [255, 0, 0]
+            return [255, Math.random() * 255, 0, opacity]
         if(this.burned)
-            return [128, 0, 0]
+            return [30, 30, 30, opacity]
     }
 
     update() {
@@ -83,6 +81,6 @@ class Fire extends Cell {
 
 const fireLayer = new CALayer(Fire)
 
-const ca = window.ca = new Simulation(200, 200, [terrainLayer, fireLayer])
+const ca = window.ca = new Simulation(300, 150, [terrainLayer, fireLayer], {scale:6})
+createPropertySlider(window, 'opacity', 0, 255, 1, 255)
 ca.resume()
-createLayerControls(ca)

@@ -1,4 +1,4 @@
-import {CALayer, ABLayer, Cell, Agent, Simulation, makeCell, createLayerControls, createTimeControls, chance, random, weightedChooseDo, createPropertyControl} from '../dist/simulation-station.esm.js'
+import {CALayer, ABLayer, Cell, Agent, Simulation, makeCell, createLayerGroupControl, createTimeControls, chance, random, weightedChooseDo, createPropertyControl} from '../dist/simulation-station.esm.js'
 
 
 const params = {
@@ -19,15 +19,12 @@ const params = {
     speed: 0.3
 }
 
-createPropertyControl(params, 'regenCoef')
-
 const random_dir = _ => [Math.floor(2-Math.random() * 3) * params.speed, Math.floor(2-Math.random() * 3) * params.speed]
 
 class Dead extends Cell {
     add(){}
     getColor() { return [0,0,0] }
     update() {
-        //todo use inert cell count
         if(chance(params.regenCoef) && this.getVonNeumannNeighbours().some(n => n instanceof Alive))
             this.become(Alive);
     }
@@ -142,12 +139,13 @@ const mast = new ABLayer()
 const macro = new ABLayer()
 const killer = new ABLayer()
 
-new Simulation(100, 60, [patho, chemo, tissue, mast, macro, killer], {scale: 8,
+new Simulation(100, 60, [patho, chemo, tissue, mast, macro, killer], {scale: 10,
 init: sim => {
     mast.spreadRandom(Mast, 80)
     macro.spreadRandom(Macrophage, 80)
     killer.spreadRandom(NaturalKiller, 160)
     sim.resume()
-    createLayerControls(sim)
+    createLayerGroupControl([patho, chemo, tissue], 
+                            ['Show pathogens', 'Show chemokines', 'Show tissue'])
     createTimeControls(sim)
 }})

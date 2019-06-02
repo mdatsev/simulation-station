@@ -16,6 +16,6 @@ class GoL extends Cell {
     }
 }
 
-const ca = new CellularAutomata(200, 200, GoL, {scale: 4})
+const ca = new CellularAutomata(300, 150, GoL, {scale:6})
 
 ca.resume()
