@@ -200,8 +200,8 @@ class WebGLRenderer {
         const rect = event.target.getBoundingClientRect()
         const canvasX = event.clientX - rect.left
         const canvasY = event.clientY - rect.top
-        const viewport_x = canvasX / event.target.width * 2 - 1
-        const viewport_y = canvasY / event.target.height * 2 - 1
+        const viewport_x = canvasX / event.target.scrollWidth * 2 - 1
+        const viewport_y = canvasY / event.target.scrollHeight * 2 - 1
         const x = (viewport_x / this.scaleX - this.translateX) 
         const y = (viewport_y / this.scaleY - this.translateY)
         return [x, y]
