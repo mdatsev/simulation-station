@@ -1,6 +1,7 @@
 class Layer {
-    constructor() {
+    constructor(options={}) {
         this.visible = true
+        this.static = options.static
     }
 
     show() {

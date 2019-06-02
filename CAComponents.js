@@ -95,7 +95,7 @@ class EmptyCell extends Cell {
 class CALayer extends Layer {
 
     constructor(cellTypes, options) {
-        super()
+        super(options)
         this.options = options
         this.cellTypes = cellTypes
     }
@@ -153,6 +153,8 @@ class CALayer extends Layer {
     }
 
     tick() {
+        if(this.static) 
+            return
         const generators = []
         for(const cell of this.getCellsIterator()) {
             if(cell.updateParallel != Cell.prototype.updateParallel)
