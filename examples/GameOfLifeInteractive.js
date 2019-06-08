@@ -3,10 +3,6 @@ import {createTimeControls} from '../UI.js'
 
 class GoL extends Cell {
 
-    init() {
-        this.alive = this.x == 1 || this.y == 10 || Math.random() > .9
-    }
-
     getColor() {
         return this.alive ? [255, 255, 255] : [0, 0, 0]
     }
@@ -17,11 +13,9 @@ class GoL extends Cell {
     }
 
     onClick() {
-        console.log(this.x, this.y)
         this.alive ^= true
     }
 }
 
-const ca = window.ca = new CellularAutomata(50, 50, GoL, {scale:4})
-ca.simulation.renderer.draw()
+const ca = new CellularAutomata(50, 50, GoL, {scale:10})
 createTimeControls(ca)

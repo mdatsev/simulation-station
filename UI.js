@@ -35,12 +35,9 @@ function createLayerGroupControl(layers, names, parent = document.body) {
         r.name = name;
         r.id = getUniqueId();
         document.body.appendChild(r);
-        let l = document.createElement('label');
-        l.htmlFor = r.id
-        l.innerText = names[i]
-        r.addEventListener('click', update)
         el.appendChild(r)
-        el.appendChild(l)
+        let l = createLabel(r, names[i], el);
+        r.addEventListener('click', update)
         radios.push(r)
     }
     return parent.appendChild(el)
@@ -89,10 +86,19 @@ function createPropertyControl(object, property, parent = document.body, value =
     return parent.appendChild(input)
 }
 
+function createLabel(forElement, text, parent) {
+    let l = document.createElement('label')
+    l.htmlFor = forElement.id
+    l.innerText = text
+    parent.appendChild(l)
+    return l 
+}
+
 export {
     createTimeControls,
     createLayerControls,
     createPropertyControl,
     createPropertySlider,
-    createLayerGroupControl
+    createLayerGroupControl,
+    createLabel
 }

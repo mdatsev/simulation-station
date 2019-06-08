@@ -1,8 +1,7 @@
 import {CellularAutomata, Cell} from '../CellularAutomata.js'
 import {hueToRgb} from '../util.js'
 
-const cell_types = []
-const n = 16
+const n = 20
 const colors = [...Array(n).keys()].map(i => hueToRgb(i * (1 / n)))
 class C extends Cell {
     init() {
@@ -13,10 +12,9 @@ class C extends Cell {
         if(c)
             this.value = c.value
     }
-    // getColorRaw() { return colors[this.value] }
     getColor() { return colors[this.value] }
 }
 
-const ca = new CellularAutomata(200, 200, C)
+const ca = new CellularAutomata(280, 140, C, {scale:4})
 
 ca.resume()

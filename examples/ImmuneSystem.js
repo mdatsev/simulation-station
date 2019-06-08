@@ -1,7 +1,10 @@
-import {CALayer, ABLayer, Cell, Agent, Simulation, makeCell, createLayerGroupControl, createTimeControls, chance, random, weightedChooseDo, createPropertyControl} from '../dist/simulation-station.esm.js'
+import {CALayer, ABLayer, Cell, Agent, Simulation, makeCell, createLayerGroupControl, createTimeControls, chance, random, weightedChooseDo, createPropertyControl, createLabel} from '../dist/simulation-station.esm.js'
 
 
 const params = {
+    numberMastCells: 80,
+    numberMacrophages: 80,
+    numberNaturalKillers: 160, 
     pathoProb: 0.00001,
     pathoMoveMaxRatio: 0.9,
     pathoMoveMinRatio: 0.7,
@@ -42,7 +45,7 @@ class Alive extends makeCell({
             if(this > .5 && chance(this * params.deathProb)) {
                 this.become(Dead)
             }
-        } else if(chance(this.on(patho) * 200 * params.infectionProbCoef)) {
+        } else if(chance(this.on(patho) * params.infectionProbCoef)) {
             this.add(1/1000)
         }
     }
@@ -65,11 +68,14 @@ const patho = new CALayer(class extends makeCell({
     maxColor: [255, 0, 0]}) {
     update() {
         if(chance(params.pathoProb))
-            this.add(200/200);
+            this.add(1);
 
         const amount = this * random(params.pathoMoveMinRatio, params.pathoMoveMaxRatio);
         this.add(-amount)
         this.getRandomNeigh().add(amount)
+    }
+    onClick() {
+        this.add(1)
     }
 })
 
@@ -97,7 +103,7 @@ class Mast extends ImmuneCell {
         const sum = pathoNeighs.reduce((a, e) => a + e)
         pathoCell.mult(0.7)
         if(sum > 0)
-            this.on(chemo).add(sum * 200 / 1000 * 500);
+            this.on(chemo).add(sum * 100);
 
         weightedChooseDo(
             [params.mastStrayProb, _=>this.stray()],
@@ -139,13 +145,20 @@ const mast = new ABLayer()
 const macro = new ABLayer()
 const killer = new ABLayer()
 
-new Simulation(100, 60, [patho, chemo, tissue, mast, macro, killer], {scale: 10,
-init: sim => {
-    mast.spreadRandom(Mast, 80)
-    macro.spreadRandom(Macrophage, 80)
-    killer.spreadRandom(NaturalKiller, 160)
-    sim.resume()
-    createLayerGroupControl([patho, chemo, tissue], 
-                            ['Show pathogens', 'Show chemokines', 'Show tissue'])
-    createTimeControls(sim)
-}})
+const sim = new Simulation(70, 50, [patho, chemo, tissue, mast, macro, killer], {
+    init: sim => {
+        mast.spreadRandom(Mast, params.numberMastCells)
+        macro.spreadRandom(Macrophage, params.numberMacrophages)
+        killer.spreadRandom(NaturalKiller, params.numberNaturalKillers)
+        sim.resume()
+    },
+    canvas: document.querySelector('canvas')
+})
+const paramsElem = document.getElementById('params')
+for(const k in params) {
+    let control = createPropertyControl(params, k, paramsElem)
+    createLabel(control, k, paramsElem)
+}
+createLayerGroupControl([patho, chemo, tissue], 
+    ['Show pathogens', 'Show chemokines', 'Show tissue'])
+createTimeControls(sim)

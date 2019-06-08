@@ -81,6 +81,6 @@ class Fire extends Cell {
 
 const fireLayer = new CALayer(Fire)
 
-const ca = window.ca = new Simulation(300, 150, [terrainLayer, fireLayer], {scale:6})
+const ca = new Simulation(180, 90, [terrainLayer, fireLayer], {scale:6})
 createPropertySlider(window, 'opacity', 0, 255, 1, 255)
 ca.resume()
