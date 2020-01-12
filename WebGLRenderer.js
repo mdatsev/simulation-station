@@ -235,19 +235,17 @@ class WebGLRenderer {
     onPan(event) {
         let [x, y] = this.clickToCanvasCoordinates(event)
         if(event.buttons & 1) {
-            this.translateX += x - this.pmouseX;
-            this.translateY += y - this.pmouseY;
+            let [px, py] = this.clickToCanvasCoordinates(this.pMouseEvent)
+            this.translateX += x - pX;
+            this.translateY += y - pY;
         }
-        this.pmouseX = x
-        this.pmouseY = y
+        this.pMouseEvent = event
         this.updateProjectionMatrix()
         this.draw()
     }
 
     onEnter(event) {
-        let [x, y] = this.clickToCanvasCoordinates(event)
-        this.pmouseX = x
-        this.pmouseY = y
+        this.pMouseEvent = event
     }
 
     drawCALayer(layer) {
