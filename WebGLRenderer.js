@@ -236,8 +236,8 @@ class WebGLRenderer {
         let [x, y] = this.clickToCanvasCoordinates(event)
         if(event.buttons & 1) {
             let [px, py] = this.clickToCanvasCoordinates(this.pMouseEvent)
-            this.translateX += x - pX;
-            this.translateY += y - pY;
+            this.translateX += x - px;
+            this.translateY += y - py;
         }
         this.pMouseEvent = event
         this.updateProjectionMatrix()
