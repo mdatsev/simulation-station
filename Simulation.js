@@ -35,11 +35,22 @@ class Simulation {
         canvas.addEventListener('click', ev => this.layers.forEach(l => {
             const [x, y] = this.renderer.clickToCanvasCoordinates(ev)
             l.onClick(x, y)
-            this.renderer.draw()
+            if(!this.running)
+                this.renderer.draw()
         }))
-        canvas.addEventListener('mouseenter', ev => this.renderer.onEnter(ev));
-        canvas.addEventListener('mousemove', ev => this.renderer.onPan(ev))
-        canvas.addEventListener('wheel', ev => this.renderer.onZoom(ev))
+        canvas.addEventListener('mouseenter', ev => {
+            this.renderer.onEnter(ev)
+        });
+        canvas.addEventListener('mousemove', ev => {
+            this.renderer.onPan(ev)
+            if(!this.running && (event.buttons & 1))
+                this.renderer.draw()
+        })
+        canvas.addEventListener('wheel', ev => {
+            this.renderer.onZoom(ev)
+            if(!this.running)
+                this.renderer.draw()
+        })
         this.renderer = new WebGLRenderer(this, canvas, xsize, ysize, { scale })
         this.frameCounter = new FrameCounter(10)
         this.running = false
@@ -54,7 +65,8 @@ class Simulation {
         if(this.initFunction) {
             this.initFunction(this)
         }
-        this.renderer.draw()
+        if(!this.running)
+            this.renderer.draw()
     }
 
     startLoop() {
@@ -72,6 +84,7 @@ class Simulation {
         }
         if(this.tickFunction)
             this.tickFunction(this)
+        
         this.renderer.draw()
         this.frameCounter.update()
         // console.log(this.frameCounter.getFramerate())
