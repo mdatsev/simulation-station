@@ -11,6 +11,12 @@ class Layer {
     hide() {
         this.visible = false
     }
+
+    // interface
+    init() {}
+    prepareForUpdate() {}
+    tick() {}
+    getCustomShaders() {}
 }
 
 export { Layer }
