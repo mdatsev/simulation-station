@@ -7,12 +7,12 @@ precision highp int;
 varying highp vec2 uv;
 uniform highp float utime;
 void main() {
-  int num_steps = 30 + int((1. + sin(utime/500.)) * 200.);
+  int num_steps = 30;
   int actual_steps;
-  float cx = (uv.x - 950.)/100.;
-  float cy = (uv.y - 400.)/100.;
+  float cx = sin(utime/1000.);
+  float cy = cos(utime/1100.);
   
-  vec2 z;
+  vec2 z = vec2((uv.x - 950.)/100., (uv.y - 450.)/100.);
   for (int i = 0; i < 1000; i++) {
     if (i == num_steps || z.x * z.x + z.y * z.y > 4.0) {
       actual_steps = i;
